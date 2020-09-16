@@ -3,6 +3,7 @@ import { Grid } from './components/Grid';
 import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
 import {random} from './utils'
+import {GameOver} from "./components/GameOver";
 const width = 1280, height = 720;
 const app = new PIXI.Application({
     width, height,
@@ -16,17 +17,6 @@ const {stage, loader} = app;
 
 let enabled = false;
 let score = 0;
-const startGame = ()=>{
-    enabled = true;
-    score = 0;
-    scoreboard.reset();
-    generateNextCell(2);
-    generateNextCell(2);
-
-    // for (let i = 0; i<16; i++){
-        // grid.addCell(i, 2 * Math.pow(2, i % 11))
-    // }
-}
 
 const grid = new Grid();
 stage.addChild(grid);
@@ -36,14 +26,39 @@ grid.y = height / 2;
 
 
 const scoreboard = new ScoreBoard();
+stage.addChild(scoreboard);
 scoreboard.x = 100;
 scoreboard.y = 100;
-stage.addChild(scoreboard);
+
+
+const gameOver = new GameOver(()=>{startGame()});
+stage.addChild(gameOver);
+gameOver.x = width / 2;
+gameOver.y = height /2;
+
+
+const startGame = ()=>{
+    grid.reset();
+    enabled = true;
+    score = 0;
+    scoreboard.reset();
+    generateNextCell(2);
+    generateNextCell(2);
+
+    // for (let i = 2; i<16; i++){
+    //     grid.addCell(i, 2 * Math.pow(2, i % 11))
+    // }/
+
+}
+
+
 
 
 const move = direction =>{
     if (!enabled) return;
     enabled = false;
+
+
     grid.move(direction)
         .then(({hasMove, stepScore})=>{
             enabled = true;
@@ -51,6 +66,12 @@ const move = direction =>{
                 score += stepScore;
                 scoreboard.setValue(score);
                 generateNextCell();
+
+                if (!grid.hasAnyMove()){
+                    showGameOver();
+                    enabled = false;
+                }
+
             }
         })
 }
@@ -66,6 +87,10 @@ const generateNextCell = (value) =>{
     // console.log(randNumber, randIndex);
     value = value || [2,4][random(0,1)]
     grid.addCell(randIndex, value)
+}
+
+const showGameOver = ()=>{
+    gameOver.visible = true;
 }
 
 startGame();
