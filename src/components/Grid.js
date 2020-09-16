@@ -2,7 +2,7 @@ import {Container, Text, Graphics, Point} from 'pixi.js';
 import { gsap } from "gsap";
 import { Cell } from './Cell';
 import directions, {isHorizontalMove, isReversedMove} from '../directions';
-import { forEach } from '../utils';
+import { forEach, generateArray, arrayEquals } from '../utils';
 
 const log_cells = cells => console.log(cells.map( arr => arr.map(s=> s ? s.value : null)))
 export class Grid extends Container{
@@ -27,6 +27,10 @@ export class Grid extends Container{
          * to keep track real active cells amount 
          */
         this._cellsCurrentAmount = 0;
+
+
+        this._currentTimeLine = null;
+
     }
 
 
@@ -34,65 +38,28 @@ export class Grid extends Container{
      * 
      */
     move(direction = directions.RIGHT){
-        let moveResolver;
-        const promise = new Promise(r => moveResolver = r);
         const isHorzlMove = isHorizontalMove(direction);
         const isReversed = isReversedMove(direction);
-        const posProp = isHorzlMove ? 'x' : 'y';
 
-        const tl = gsap.timeline({onComplete : moveResolver});
-
-        // console.clear();
-
+        // get lined before movement 
         const linesBefore = isHorzlMove ? this._getHorizontalLines() : this._getVerticalLines();
-
         log_cells(linesBefore);
 
-        const linesAfterMerges = linesBefore.slice()
-            .map(line => this._findMerges(line.slice(), isReversed))
-
+        // find mathces (merges per line)
+        const [linesAfterMerges, score] = this._findMerges(linesBefore, isReversed)
         log_cells(linesAfterMerges);
           
-        const linesAfter = linesAfterMerges.slice(0).map(line =>{
-            const notEmptyCells = line.filter(cell => cell !== null),
-                notEmptyCellsLen = notEmptyCells.length;
-
-          
-
-            if (notEmptyCellsLen === 0 || notEmptyCellsLen === line.length) return line;
-
-
-            const newLine = isReversed ? 
-            [...notEmptyCells, ...this._getEmptyArray(line.length - notEmptyCellsLen)]:
-            [...this._getEmptyArray(line.length - notEmptyCellsLen), ...notEmptyCells] 
-
-
-            newLine.forEach((cell, i)=>{
-                if (!cell) return;
-
-                const prevIndex = line.indexOf(cell);
-                tl.add(
-                    this._moveCell(cell, posProp, this._getHorizontalPosionInTheRow(prevIndex), this._getHorizontalPosionInTheRow(i)),
-                    0
-                )
-            });
-
-            return newLine;
-        });
-
+        // perform all possible moves and calculate new array
+        const linesAfter = this._moveInArray(linesAfterMerges, isReversed);
         log_cells(linesAfter);
-      
-        // console.log(linesBefore);
-        // console.log(linesAfterMerges);
-        // console.log(linesAfter);
         
-       
         
+        const prevCells = this._cells.slice();
+
         if (isHorzlMove){
             this._cells = linesAfter.flat();
         } else {
             const {_rows, _columns} = this;
-
             this._cells = [];
             for (let i = 0; i < _rows; i++){
                 for (let j = 0; j < _columns; j++){
@@ -100,36 +67,103 @@ export class Grid extends Container{
                 }
             }
         }
+        const hasMove = !arrayEquals(this._cells, prevCells)
 
-        return promise;
+        return new Promise(resolve=>{
+            this._move(linesAfterMerges, linesAfter, isHorzlMove)
+                .then(()=>resolve(hasMove))
+        })
     }
 
-    _findMerges(line, isReversed = false){
-        let candidate = null;
-        let candidateIndex = null;
 
-        forEach(line, !isReversed, (cell, i)=>{
+    _findMerges(lines, isReversed = false){
+        let score = 0;
+        return [
+            lines.slice(0)
+            .map((line)=>{
 
-            if (cell && !candidate){
-                candidate = cell;
-                candidateIndex = i;
-            } else if (cell && candidate){
+                let candidate = null;
+                let candidateIndex = null;
+        
+                forEach(line, !isReversed, (cell, i)=>{
+        
+                    if (cell && !candidate){
+                        candidate = cell;
+                        candidateIndex = i;
+                    } else if (cell && candidate){
+        
+                        if (cell.value === candidate.value){
+                            candidate.explode();
+                            score += (cell.value * 2);
+                            cell.setValue(cell.value * 2);
+                            line[candidateIndex] = null;
+                            candidate = null;
+                            candidateIndex = null;
+                        } else {
+                            candidate = cell;
+                            candidateIndex = i;
+                        }
+                    }
+        
+                })
+        
+                return line;
+            }),
+        score
+    ]
 
-                if (cell.value === candidate.value){
-                    candidate.explode();
-                    cell.setValue(cell.value * 2);
-                    line[candidateIndex] = null;
-                    candidate = null;
-                    candidateIndex = null;
-                } else {
-                    candidate = cell;
-                    candidateIndex = i;
-                }
-            }
+    }
 
-        })
+    _moveInArray(lines, isReversed){
+        return lines.slice(0).map(line =>{
 
-        return line;
+            const lineCells = line.filter(cell => cell !== null),
+                lineCellsLen = lineCells.length;
+
+            // if line has no cells to move or line is fully loaded
+            if (lineCellsLen === 0 || lineCellsLen === line.length) return line;
+
+            // generate empty (null) cells array 
+            const emptyCells = generateArray(line.length - lineCellsLen);
+
+            // create new line depends on reversed move or not 
+            const newLine = isReversed ? 
+                [...lineCells, ...emptyCells]:
+                [...emptyCells, ...lineCells] 
+
+            return newLine;
+        });
+
+    }
+
+    /**
+     * play move animation 
+     * @param {} linesBefore 
+     * @param {*} linesAfter 
+     */
+    _move(linesBefore, linesAfter, isHorzlMove){
+        let moveResolver;
+        const promise = new Promise(r => moveResolver = r);
+        const tl = gsap.timeline({onComplete : moveResolver});
+        const posProp = isHorzlMove ? 'x' : 'y';
+
+        linesBefore.forEach((line, i)=>{
+            const newLine = linesAfter[i];
+
+            newLine.forEach((cell, i)=>{
+                if (!cell) return;
+                const prevIndex = line.indexOf(cell);
+                if (prevIndex === i) return;
+
+                tl.add(
+                    this._moveCell(cell, posProp, this._getHorizontalPosionInTheRow(prevIndex), this._getHorizontalPosionInTheRow(i)),
+                    0
+                )
+            });
+        });
+
+        this._currentTimeLine = tl;
+        return promise;
     }
 
     /**
@@ -186,9 +220,7 @@ export class Grid extends Container{
     }
 
 
-    _getEmptyArray(len = 1, fill = null){
-        return new Array(len).fill(fill)
-    }
+ 
 
     _getHorizontalLines(){
         const {_rows, _columns, _cells} = this;
@@ -241,7 +273,7 @@ export class Grid extends Container{
     _drawCellShape(g, x, y){
         const {_cellSize} = this;
 
-        g.drawRoundedRect(x, y, _cellSize, _cellSize, 14);
+    g.drawRoundedRect(x, y, _cellSize, _cellSize, 14);
     }
 
     _getCellPosition(i){

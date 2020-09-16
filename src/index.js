@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js'
 import { Grid } from './components/Grid';
+import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
 import {random} from './utils'
 const width = 1280, height = 720;
-
 
 const app = new PIXI.Application({
     width, height, 
@@ -15,8 +15,10 @@ document.body.appendChild(app.view);
 
 const {stage, loader} = app;
 
-
+let enabled = false;
 const startGame = ()=>{
+
+    enabled = true;
     generateNextCell(2);
     generateNextCell(2);
 
@@ -28,18 +30,30 @@ const startGame = ()=>{
 const grid = new Grid();
 stage.addChild(grid);
 grid.pivot.set(grid.width/2, grid.height/2);
-
 grid.x = width / 2;
 grid.y = height / 2;
+
+
+const scoreboard = new ScoreBoard();
+scoreboard.x = 100;
+scoreboard.y = 100;
+stage.addChild(scoreboard);
+
 
 
 
 
 const move = direction =>{
+    if (!enabled) return;
+    enabled = false;
     grid.move(direction)
-    .then(()=>{
-        generateNextCell();
-        // console.log('move completed');
+    .then((hasMove)=>{
+        enabled = true;
+        console.log('hasmove', hasMove);
+        if (hasMove){
+            generateNextCell();
+        }
+        console.log('move completed');
     })
 }
 

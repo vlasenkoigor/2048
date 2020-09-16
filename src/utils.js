@@ -1,9 +1,7 @@
-
 export const random = (min, max) => {
     let rand = min - 0.5 + Math.random() * (max - min + 1);
     return Math.abs(Math.round(rand));
   }
-
 
 export const forEach = (array, reversed = false, callback) => {
     if (!reversed){
@@ -16,3 +14,14 @@ export const forEach = (array, reversed = false, callback) => {
         }
     }
 } 
+
+export const arrayEquals = (a, b)=>{
+    return Array.isArray(a) &&
+      Array.isArray(b) &&
+      a.length === b.length &&
+      a.every((val, index) => val === b[index]);
+}
+
+export const generateArray = (len = 1, fill = null) => {
+    return new Array(len).fill(fill)
+}
