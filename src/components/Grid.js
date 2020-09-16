@@ -17,14 +17,14 @@ export class Grid extends Container{
         this._hGap = hGap;
         this._time = 0.2;
 
-        // grid bg creation 
+        // grid bg creation
         this._bg = this._drawGridBackground();
         this.addChild(this._bg);
 
         this._cells = new Array(columns * rows).fill(null);
 
         /**
-         * to keep track real active cells amount 
+         * to keep track real active cells amount
          */
         this._cellsCurrentAmount = 0;
 
@@ -35,25 +35,25 @@ export class Grid extends Container{
 
 
     /**
-     * 
+     *
      */
     move(direction = directions.RIGHT){
         const isHorzlMove = isHorizontalMove(direction);
         const isReversed = isReversedMove(direction);
 
-        // get lined before movement 
+        // get lined before movement
         const linesBefore = isHorzlMove ? this._getHorizontalLines() : this._getVerticalLines();
         log_cells(linesBefore);
 
-        // find mathces (merges per line)
-        const [linesAfterMerges, score] = this._findMerges(linesBefore, isReversed)
+        // find matches (merges per line)
+        const [linesAfterMerges, stepScore] = this._findMerges(linesBefore, isReversed)
         log_cells(linesAfterMerges);
-          
+
         // perform all possible moves and calculate new array
         const linesAfter = this._moveInArray(linesAfterMerges, isReversed);
         log_cells(linesAfter);
-        
-        
+
+
         const prevCells = this._cells.slice();
 
         if (isHorzlMove){
@@ -71,7 +71,7 @@ export class Grid extends Container{
 
         return new Promise(resolve=>{
             this._move(linesAfterMerges, linesAfter, isHorzlMove)
-                .then(()=>resolve(hasMove))
+                .then(()=>resolve({hasMove, stepScore}))
         })
     }
 
@@ -84,14 +84,14 @@ export class Grid extends Container{
 
                 let candidate = null;
                 let candidateIndex = null;
-        
+
                 forEach(line, !isReversed, (cell, i)=>{
-        
+
                     if (cell && !candidate){
                         candidate = cell;
                         candidateIndex = i;
                     } else if (cell && candidate){
-        
+
                         if (cell.value === candidate.value){
                             candidate.explode();
                             score += (cell.value * 2);
@@ -104,9 +104,9 @@ export class Grid extends Container{
                             candidateIndex = i;
                         }
                     }
-        
+
                 })
-        
+
                 return line;
             }),
         score
@@ -123,13 +123,13 @@ export class Grid extends Container{
             // if line has no cells to move or line is fully loaded
             if (lineCellsLen === 0 || lineCellsLen === line.length) return line;
 
-            // generate empty (null) cells array 
+            // generate empty (null) cells array
             const emptyCells = generateArray(line.length - lineCellsLen);
 
-            // create new line depends on reversed move or not 
-            const newLine = isReversed ? 
+            // create new line depends on reversed move or not
+            const newLine = isReversed ?
                 [...lineCells, ...emptyCells]:
-                [...emptyCells, ...lineCells] 
+                [...emptyCells, ...lineCells]
 
             return newLine;
         });
@@ -137,9 +137,9 @@ export class Grid extends Container{
     }
 
     /**
-     * play move animation 
-     * @param {} linesBefore 
-     * @param {*} linesAfter 
+     * play move animation
+     * @param {} linesBefore
+     * @param {*} linesAfter
      */
     _move(linesBefore, linesAfter, isHorzlMove){
         let moveResolver;
@@ -167,9 +167,9 @@ export class Grid extends Container{
     }
 
     /**
-     * add cell to the grid 
-     * @param {Number} index 
-     * @param {Number} value 
+     * add cell to the grid
+     * @param {Number} index
+     * @param {Number} value
      */
     addCell(index, value = 2){
         const {x, y} = this._getCellPosition(index);
@@ -191,24 +191,24 @@ export class Grid extends Container{
 
 
     /**
-     * get available options 
+     * get available options
      * @returns {Number}
      */
     getOptionsIndexes(){
         return this._cells.map((e, i) => e ? null : i).filter(e => e !== null);
     }
 
- 
+
     /**
-     * 
-     * @param {Cell} cell 
-     * @param {String} prop 
-     * @param {Number} from 
-     * @param {Number} to 
+     *
+     * @param {Cell} cell
+     * @param {String} prop
+     * @param {Number} from
+     * @param {Number} to
      */
     _moveCell(cell, prop, from, to){
 
-        return gsap.fromTo(cell, 
+        return gsap.fromTo(cell,
             {
                 [prop] : from
             },
@@ -220,7 +220,7 @@ export class Grid extends Container{
     }
 
 
- 
+
 
     _getHorizontalLines(){
         const {_rows, _columns, _cells} = this;

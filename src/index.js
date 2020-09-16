@@ -4,11 +4,10 @@ import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
 import {random} from './utils'
 const width = 1280, height = 720;
-
 const app = new PIXI.Application({
-    width, height, 
-    backgroundColor: 0x918f89, 
-    resolution: window.devicePixelRatio || 1, 
+    width, height,
+    backgroundColor: 0x918f89,
+    resolution: window.devicePixelRatio || 1,
     antialias : true
 })
 document.body.appendChild(app.view);
@@ -16,9 +15,11 @@ document.body.appendChild(app.view);
 const {stage, loader} = app;
 
 let enabled = false;
+let score = 0;
 const startGame = ()=>{
-
     enabled = true;
+    score = 0;
+    scoreboard.reset();
     generateNextCell(2);
     generateNextCell(2);
 
@@ -40,21 +41,18 @@ scoreboard.y = 100;
 stage.addChild(scoreboard);
 
 
-
-
-
 const move = direction =>{
     if (!enabled) return;
     enabled = false;
     grid.move(direction)
-    .then((hasMove)=>{
-        enabled = true;
-        console.log('hasmove', hasMove);
-        if (hasMove){
-            generateNextCell();
-        }
-        console.log('move completed');
-    })
+        .then(({hasMove, stepScore})=>{
+            enabled = true;
+            if (hasMove){
+                score += stepScore;
+                scoreboard.setValue(score);
+                generateNextCell();
+            }
+        })
 }
 
 const generateNextCell = (value) =>{
@@ -74,12 +72,12 @@ startGame();
 
 window.addEventListener("keydown", event => {
     const {keyCode} = event;
-    
+
     switch (keyCode){
         case 37:
             move(directions.LEFT);
             break;
-        case 38: 
+        case 38:
             move(directions.UP);
             break;
         case 39:
@@ -94,7 +92,7 @@ window.addEventListener("keydown", event => {
     }
 });
 
-        
+
 // Listen for animate update
 app.ticker.add(()=>{
 
