@@ -5,7 +5,7 @@ module.exports = (env, argv)=>{
     return   {
         entry: { main: './src/index.js'},
         output: {
-            path: path.join(__dirname, 'public', 'js'),
+            path: path.join(__dirname, '../public', 'js'),
             filename: 'main.js'
         },
         module: {
@@ -23,7 +23,7 @@ module.exports = (env, argv)=>{
         devServer: {
             liveReload: false,
             hot: true,
-            contentBase: path.join(__dirname, 'public'),
+            contentBase: path.join(__dirname, '../public'),
             publicPath: '/js/'
         }
     }

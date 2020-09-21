@@ -39,6 +39,7 @@ const startApp = (resources)=>{
     try{
         socket = io('http://localhost:5001');
 
+        alert(1);
         socket.on('startGame', ()=>{
             startGame();
         });
