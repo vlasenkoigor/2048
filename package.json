@@ -4,7 +4,7 @@
   "scripts" : {
     "install:client" : "npm run install:client --prefix 2048",
     "build:client" : "npm run build --prefix 2048",
-    "build" : "npm run install:client && npm run build:client && npm run build --prefix server",
+    "build" : "npm run install:client && npm run build --prefix server",
     "start" : "npm run start --prefix server",
     "heroku-postbuild": "webpack -p --config ./2048/webpack.prod.config.js --progress"
   },
