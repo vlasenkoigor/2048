@@ -39,7 +39,7 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io('http://localhost:5001');
+        socket = io();
 
         console.log('waiting for players');
 
