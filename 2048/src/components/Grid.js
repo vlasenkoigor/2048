@@ -37,12 +37,31 @@ export class Grid extends Container{
         this._cells = generateArray(this._columns * this._rows, null);
     }
 
+
+    moveDemo(direction, previousCellsIds){
+        this._syncCellsState(previousCellsIds);
+        return this.move(direction);
+    }
+
+    _syncCellsState(previousCellsIds){
+        const {_cells} = this;
+        console.log(_cells.slice(), previousCellsIds);
+        for (let i = 0, len = _cells.length; i < len; i++){
+            if (previousCellsIds[i] === null && _cells[i]){
+                _cells[i].destroy();
+                _cells[i] == null;
+            } else if (previousCellsIds[i] !== null && _cells[i].value !== previousCellsIds[i]){
+                _cells[i].setValue(previousCellsIds[i])
+            }
+        }
+    }
+
     /**
      *
      */
     move(direction){
         const
-            {linesAfterMerges, linesAfter, isHorzlMove, hasMove, stepScore, newCells}
+            {hasMove, stepScore, previousCellsIds, currentCellsIds, linesAfterMerges, linesAfter, isHorzlMove, newCells}
                 = this.checkMove(direction);
 
         this._cells = newCells;
@@ -51,9 +70,11 @@ export class Grid extends Container{
 
         return {
             promise,
-            data :  {linesAfterMerges, linesAfter, isHorzlMove, hasMove, stepScore, newCells}
+            data :  {hasMove, stepScore, previousCellsIds, currentCellsIds}
         }
     }
+
+   
 
     checkMove(direction = directions.RIGHT){
         const isHorzlMove = isHorizontalMove(direction);
@@ -61,6 +82,8 @@ export class Grid extends Container{
 
         // get lined before movement
         const linesBefore = isHorzlMove ? this._getHorizontalLines() : this._getVerticalLines();
+
+        const previousCellsIds = this._cells.map(cell => cell ? cell.value : null);
 
         // find matches (merges per line)
         const [linesAfterMerges, stepScore] = this._findMerges(linesBefore, isReversed)
@@ -83,8 +106,10 @@ export class Grid extends Container{
         }
 
         const hasMove = !arrayEquals(newCells, prevCells);
+     
+        const currentCellsIds = newCells.map(cell => cell ? cell.value : null);
 
-        return {linesAfterMerges, linesAfter, isHorzlMove, hasMove, stepScore, newCells};
+        return {hasMove, stepScore, previousCellsIds, currentCellsIds, linesAfterMerges, linesAfter, isHorzlMove, newCells};
     }
 
     hasAnyMove() {
