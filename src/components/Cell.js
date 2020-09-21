@@ -1,6 +1,5 @@
 import { Container, Graphics, Text, utils, ViewableBuffer } from "pixi.js";
 
-
 const colors = [
     '#eee4da',
     '#eee1ce',
@@ -16,12 +15,14 @@ const colors = [
 ];
 
 const blackStyle = {
+    "fontFamily" : "Barlow",
     "fill": "#6e6e6e",
     "fontSize": 60,
     "fontWeight": "bolder"
 }
 
 const whiteStyle = {
+    "fontFamily" : "Barlow",
     "fill": "#ffffff",
     "fontSize": 60,
     "fontWeight": "bolder"
@@ -59,11 +60,11 @@ export class Cell extends Container{
         this.destroy();
     }
 
-    
+
     _redraw(){
         const {_view, _shapeCreator, value} = this;
         const color = colors[Math.log2(value) - 1];
-        
+
         // if (value === 16){
         //     debugger
         //     console.log('redraw', color);
@@ -80,12 +81,12 @@ export class Cell extends Container{
         const style = Math.log2(value) > 2 ? whiteStyle : blackStyle;
         this._tf.style = style;
     }
-    
-    
+
+
     _createVeiw(){
         return new Graphics();
     }
-    
+
     _createTextField(cellSize){
         const tf = new Text('', blackStyle);
 

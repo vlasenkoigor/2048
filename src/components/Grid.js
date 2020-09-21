@@ -1,4 +1,4 @@
-import {Container, Text, Graphics, Point} from 'pixi.js';
+import {Container, Sprite, Graphics, Point, Texture} from 'pixi.js';
 import { gsap } from "gsap";
 import { Cell } from './Cell';
 import directions, {isHorizontalMove, isReversedMove} from '../directions';
@@ -7,9 +7,8 @@ import { forEach, generateArray, arrayEquals } from '../utils';
 const log_cells = cells => console.log(cells.map( arr => arr.map(s=> s ? s.value : null)))
 export class Grid extends Container{
 
-    constructor(columns = 4, rows = 4, cellSize = 120, vGap = 10, hGap = 10){
+    constructor(columns = 4, rows = 4, cellSize = 90, vGap = 10, hGap = 10){
         super();
-
         this._columns = columns;
         this._rows = rows;
         this._cellSize = cellSize;
@@ -47,10 +46,13 @@ export class Grid extends Container{
                 = this.checkMove(direction);
 
         this._cells = newCells;
-        return new Promise(resolve=>{
-            this._move(linesAfterMerges, linesAfter, isHorzlMove)
-                .then(()=>resolve({hasMove, stepScore}))
-        })
+
+        const promise = this._move(linesAfterMerges, linesAfter, isHorzlMove)
+
+        return {
+            promise,
+            data :  {linesAfterMerges, linesAfter, isHorzlMove, hasMove, stepScore, newCells}
+        }
     }
 
     checkMove(direction = directions.RIGHT){
@@ -242,9 +244,6 @@ export class Grid extends Container{
         return this._cells.map((e, i) => e ? null : i).filter(e => e !== null);
     }
 
-
-
-
     _getHorizontalLines(){
         const {_rows, _columns, _cells} = this;
 
@@ -277,9 +276,19 @@ export class Grid extends Container{
 
 
     _drawGridBackground(){
-        const {_columns, _rows, _cellSize} = this;
+        const {_columns, _rows, _hGap, _vGap, _cellSize} = this;
         const g = new Graphics();
-        g.beginFill(0x6d7171);
+
+        g.beginFill(0xBBAE9E);
+        const width = _columns * (_hGap + _cellSize) - _hGap;
+        const height = _rows * (_vGap + _cellSize) - _vGap;
+        const radius = 8;
+        const offset = 10;
+        g.drawRoundedRect(-offset,-offset,  width + offset * 2, height + offset * 2,  radius)
+        g.endFill();
+
+
+        g.beginFill(0xFFFFFF, 0.1);
 
 
         for (let i = 0; i < _columns * _rows; i++){

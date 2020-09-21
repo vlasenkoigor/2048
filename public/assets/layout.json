@@ -1,0 +1,9 @@
+{
+  "cellSize" : 96,
+  "vGap": 10,
+  "hGap": 10,
+  "userGridPos" : {"x":  50, "y" :  298},
+  "opponentGridPos" : {"x":  564, "y" :  298},
+
+  "scoreBoardPos" : {"x": 40, "y" : 206}
+}

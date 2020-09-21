@@ -34,7 +34,7 @@ export class ScoreBoard extends Container{
 
 
     _createLabel(){
-        const tf = new Text('Score', labelStyle);
+        const tf = new Text('SCORE', labelStyle);
         tf.x = 7;
         tf.y = 8;
         return tf;
@@ -43,20 +43,21 @@ export class ScoreBoard extends Container{
     _createValue(){
         const tf = new Text('17700', valueStyle);
         tf.x = 7;
-        tf.y = 35       ;
+        tf.y = 33       ;
         return tf;
     }
 }
 
 const labelStyle = {
-    fontWeight: "bold",
+    fontFamily : "Barlow",
     fontSize : 20,
     fill: "#ffffff"
 }
 
 
 const valueStyle = {
-    fontWeight: "bold",
+    fontFamily : "Barlow",
+    fontWeight : "bold",
     fontSize : 30,
     fill: "#ffffff"
 }

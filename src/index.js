@@ -1,127 +1,204 @@
 import * as PIXI from 'pixi.js'
+import * as WebFont from 'webfontloader';
+import io from 'socket.io-client';
 import { Grid } from './components/Grid';
 import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
 import {random} from './utils'
 import {GameOver} from "./components/GameOver";
-const width = 1280, height = 720;
+const width = 1038 , height = 834;
 const app = new PIXI.Application({
     width, height,
-    backgroundColor: 0x918f89,
+    backgroundColor: 0xFBF9ED,
     resolution: window.devicePixelRatio || 1,
     antialias : true
 })
 document.body.appendChild(app.view);
 
-const {stage, loader} = app;
+const {stage} = app;
+const loader = PIXI.Loader.shared;
 
-let enabled = false;
-let score = 0;
+loader.add('layout','/assets/layout.json');
+loader.add('AutoPlay','/assets/AutoPlay.png');
+loader.load((_, resources)=>{
+    WebFont.load({
+        google: {
+            families: ['Barlow']
+        },
+        active : ()=>{
+            startApp(resources);
+        }
+    });
 
-const grid = new Grid();
-stage.addChild(grid);
-grid.pivot.set(grid.width/2, grid.height/2);
-grid.x = width / 2;
-grid.y = height / 2;
+})
 
+let socket;
+let initialCells = [];
+const startApp = (resources)=>{
 
-const scoreboard = new ScoreBoard();
-stage.addChild(scoreboard);
-scoreboard.x = 100;
-scoreboard.y = 100;
+    try{
+        socket = io('http://localhost:5001');
 
+        socket.on('startGame', ()=>{
+            startGame();
+        });
 
-const gameOver = new GameOver(()=>{startGame()});
-stage.addChild(gameOver);
-gameOver.x = width / 2;
-gameOver.y = height /2;
+        socket.on('initialCells', (cells)=>{
+            setInitialOpponentCells(cells);
+        });
 
-
-const startGame = ()=>{
-    grid.reset();
-    enabled = true;
-    score = 0;
-    scoreboard.reset();
-    generateNextCell(2);
-    generateNextCell(2);
-
-    // for (let i = 2; i<16; i++){
-    //     grid.addCell(i, 2 * Math.pow(2, i % 11))
-    // }/
-
-}
-
-
-
-
-const move = direction =>{
-    if (!enabled) return;
-    enabled = false;
-
-
-    grid.move(direction)
-        .then(({hasMove, stepScore})=>{
-            enabled = true;
-            if (hasMove){
-                score += stepScore;
-                scoreboard.setValue(score);
-                generateNextCell();
-
-                if (!grid.hasAnyMove()){
-                    showGameOver();
-                    enabled = false;
-                }
-
-            }
+        socket.on('move', (data)=>{
+            const {direction, hasMove, nextRandIndex, nextCellValue} = data;
+            moveOpponent({direction, hasMove, nextRandIndex, nextCellValue} )
         })
-}
 
-const generateNextCell = (value) =>{
-    const optionsIndexes = grid.getOptionsIndexes();
-    const randNumber = random(0, optionsIndexes.length-1);
-    const randIndex = optionsIndexes[randNumber];
+    } catch (e) {
+        debugger
+    }
 
-    // console.clear();
-    // console.log(grid._cells);
-    // console.log(optionsIndexes);
-    // console.log(randNumber, randIndex);
-    value = value || [2,4][random(0,1)]
-    grid.addCell(randIndex, value)
-}
+    const layout = resources.layout.data;
 
-const showGameOver = ()=>{
-    gameOver.visible = true;
-}
+    const {cellSize, vGap, hGap, userGridPos, opponentGridPos,
+        scoreBoardPos} = layout;
 
-startGame();
 
-window.addEventListener("keydown", event => {
-    const {keyCode} = event;
+    let enabled = false;
+    let score = 0;
 
-    switch (keyCode){
-        case 37:
-            move(directions.LEFT);
-            break;
-        case 38:
-            move(directions.UP);
-            break;
-        case 39:
-            move(directions.RIGHT)
-            break;
-        case 40:
-            move(directions.DOWN)
-            break;
-        default :
-            break;
+    // uer grid
+    const grid = new Grid(4, 4, cellSize, vGap, hGap);
+    stage.addChild(grid);
+    grid.x = userGridPos.x;
+    grid.y = userGridPos.y;
+
+    // opponent grid
+    const opponentGrid = new Grid(4, 4, cellSize, vGap, hGap);
+    stage.addChild(opponentGrid);
+    opponentGrid.x = opponentGridPos.x;
+    opponentGrid.y = opponentGridPos.y;
+
+
+    const scoreboard = new ScoreBoard();
+    stage.addChild(scoreboard);
+    scoreboard.x = scoreBoardPos.x;
+    scoreboard.y = scoreBoardPos.y;
+
+
+    const gameOver = new GameOver(()=>{startGame()});
+    stage.addChild(gameOver);
+    gameOver.x = width / 2;
+    gameOver.y = height /2;
+
+    const setInitialOpponentCells = (cells)=>{
+        cells.forEach((cell)=>{
+            opponentGrid.addCell(...cell)
+        })
+    }
+
+    const startGame = ()=>{
+        grid.reset();
+        opponentGrid.reset();
+        enabled = true;
+        score = 0;
+        scoreboard.reset();
+
+
+        const initialCells = [];
+
+        for (let i = 0; i < 2; i++){
+            const cell = generateNextCell(2, grid);
+            grid.addCell(...cell);
+            initialCells.push(cell);
+        }
+
+        socket.emit('initialCells', initialCells);
+    }
+
+    const move = direction =>{
+        if (!enabled) return;
+        enabled = false;
+
+        const {data, promise} = grid.move(direction);
+        const {hasMove, stepScore} = data
+        score += stepScore;
+
+        let nextRandIndex, nextCellValue;
+        if (hasMove){
+            [nextRandIndex, nextCellValue] = generateNextCell(null, grid);
+        }
+
+        socket.emit('move', {direction, hasMove, nextRandIndex, nextCellValue, score})
+
+        promise
+            .then(()=>{
+                enabled = true;
+                if (hasMove){
+                    grid.addCell(nextRandIndex, nextCellValue);
+                    scoreboard.setValue(score);
+                    if (!grid.hasAnyMove()){
+                        showGameOver();
+                        enabled = false;
+                    }
+                }
+            })
+    }
+
+    const moveOpponent = (data)=>
+    {
+        const {direction, hasMove, nextRandIndex, nextCellValue} = data;
+        const {_, promise} = opponentGrid.move(direction);
+
+        promise
+            .then(()=>{
+                enabled = true;
+                if (hasMove){
+                    opponentGrid.addCell(nextRandIndex, nextCellValue);
+                    // scoreboard.setValue(score);
+                    // if (!grid.hasAnyMove()){
+                    //     showGameOver();
+                    //     enabled = false;
+                    // }
+                }
+            })
 
     }
-});
+
+    const generateNextCell = (value, grid) =>{
+        const optionsIndexes = grid.getOptionsIndexes();
+        const randNumber = random(0, optionsIndexes.length-1);
+        const randIndex = optionsIndexes[randNumber];
+
+        value = value || [2,4][random(0,1)]
+        return [randIndex, value]
+    }
+
+    const showGameOver = ()=>{
+        gameOver.visible = true;
+    }
 
 
-// Listen for animate update
-app.ticker.add(()=>{
+    window.addEventListener("keydown", event => {
+        const {keyCode} = event;
 
-});
+        switch (keyCode){
+            case 37:
+                move(directions.LEFT);
+                break;
+            case 38:
+                move(directions.UP);
+                break;
+            case 39:
+                move(directions.RIGHT)
+                break;
+            case 40:
+                move(directions.DOWN)
+                break;
+            default :
+                break;
+
+        }
+    });
+}
 
 
 
