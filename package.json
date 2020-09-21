@@ -6,7 +6,7 @@
     "build:client" : "npm run build --prefix 2048",
     "build" : "npm run install:client && npm run build --prefix server",
     "start" : "npm run start --prefix server",
-    "heroku-postbuild": "webpack -p --config ./2048/webpack.config.js --progress"
+    "heroku-postbuild": "npm run build:client"
   },
   "dependencies": {
 
