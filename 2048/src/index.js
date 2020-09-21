@@ -37,10 +37,17 @@ let initialCells = [];
 const startApp = (resources)=>{
 
     try{
+        console.log('connecting to the server')
         socket = io('http://localhost:5001');
 
-        alert(1);
+        console.log('waiting for players');
+
+        socket.on('gameInfo', (users)=>{
+            console.log('users', users)
+        })
+
         socket.on('startGame', ()=>{
+            console.log('start game ')
             startGame();
         });
 
@@ -51,7 +58,17 @@ const startApp = (resources)=>{
         socket.on('move', (data)=>{
             const {direction, hasMove, nextRandIndex, nextCellValue} = data;
             moveOpponent({direction, hasMove, nextRandIndex, nextCellValue} )
+        });
+
+        socket.on('match_result', (data)=>{
+            console.log('match_result', data)
+        });
+
+
+        socket.on('playerDisconnected', ()=>{
+            enabled = false;
         })
+
 
     } catch (e) {
         debugger
@@ -174,6 +191,7 @@ const startApp = (resources)=>{
     }
 
     const showGameOver = ()=>{
+        socket.emit('gameOver', score)
         gameOver.visible = true;
     }
 

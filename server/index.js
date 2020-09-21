@@ -27,9 +27,13 @@ io.on("connection", function (socket) {
     }
 
     players.push({
-        id : socket.id
+        id : socket.id,
+        socket : ()=>{return socket},
+        lastMove : null
     });
     console.log(socket.id)
+
+    socket.emit('gameInfo', players)
 
     if (players.length === 2){
         io.emit('startGame');
@@ -47,11 +51,30 @@ io.on("connection", function (socket) {
     socket.on('gameOver', (score)=>{
         const player = players.find(p => p.id === socket.id);
         player.score = score;
+        player.isGameOver = true;
+
+        const player1 = players[0];
+        const player2 = players[1];
+
+        console.log('game over')
+        if (player1.isGameOver && player2.isGameOver){
+            if (player1.score > player2.score){
+                player1.socket().emit('match_result', {result : "win", score : player1.score})
+                player2.socket().emit('match_result', {result : "lose", score : player2.score})
+            } else if (player2.score > player1.score){
+                player2.socket().emit('match_result', {result : "win", score : player2.score})
+                player1.socket().emit('match_result', {result : "lose", score : player1.score})
+            } else if (player1.score === player2.score){
+                player2.socket().emit('match_result', {result : "drawn", score : player2.score})
+                player1.socket().emit('match_result', {result : "drawn", score : player1.score})
+            }
+        }
     })
 
     socket.on('disconnect', () => {
         players = players.filter(p => p.id!== socket.id)
         console.log('user disconnected');
+        socket.broadcast.emit('playerDisconnected')
     });
 
 });
