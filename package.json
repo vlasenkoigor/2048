@@ -2,7 +2,9 @@
   "name": "2048",
   "version": "1.0.0",
   "scripts" : {
-    "build" : "npm run build --prefix server",
+    "install:client" : "npm run install:client --prefix 2048",
+    "build:client" : "npm run build --prefix 2048",
+    "build" : "npm run install:client && npm run build:client && npm run build --prefix server",
     "start" : "npm run start --prefix server"
   },
   "dependencies": {

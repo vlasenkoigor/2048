@@ -40,6 +40,7 @@ const startApp = (resources)=>{
     try{
         console.log('connecting to the server')
         socket = io();
+        // socket = io('http://localhost:5001');
 
         console.log('waiting for players');
 
@@ -63,7 +64,6 @@ const startApp = (resources)=>{
         socket.on('match_result', (data)=>{
             console.log('match_result', data)
         });
-
 
         socket.on('playerDisconnected', ()=>{
             enabled = false;
@@ -91,7 +91,7 @@ const startApp = (resources)=>{
 
     // opponent grid
     const opponentGrid = new Grid(4, 4, cellSize, vGap, hGap);
-    // stage.addChild(opponentGrid);
+    stage.addChild(opponentGrid);
     opponentGrid.x = opponentGridPos.x;
     opponentGrid.y = opponentGridPos.y;
 
