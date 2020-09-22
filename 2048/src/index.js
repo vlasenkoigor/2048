@@ -33,12 +33,14 @@ loader.load((_, resources)=>{
 })
 
 let socket;
-let initialCells = [];
+let opponetMovesQueue = [];
+let opponentQueuePlaying = false;
 const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io('http://localhost:5001');
+        socket = io();
+        // socket = io('http://localhost:5001');
 
         console.log('waiting for players');
 
@@ -56,14 +58,12 @@ const startApp = (resources)=>{
         });
 
         socket.on('move', (data)=>{
-            const {direction, hasMove, nextRandIndex, nextCellValue} = data;
-            moveOpponent({direction, hasMove, nextRandIndex, nextCellValue} )
+            moveOpponent(data)
         });
 
         socket.on('match_result', (data)=>{
             console.log('match_result', data)
         });
-
 
         socket.on('playerDisconnected', ()=>{
             enabled = false;
@@ -137,7 +137,7 @@ const startApp = (resources)=>{
         enabled = false;
 
         const {data, promise} = grid.move(direction);
-        const {hasMove, stepScore} = data
+        const {hasMove, stepScore, previousCellsIds, currentCellsIds} = data
         score += stepScore;
 
         let nextRandIndex, nextCellValue;
@@ -145,7 +145,7 @@ const startApp = (resources)=>{
             [nextRandIndex, nextCellValue] = generateNextCell(null, grid);
         }
 
-        socket.emit('move', {direction, hasMove, nextRandIndex, nextCellValue, score})
+        socket.emit('move', {direction, hasMove, stepScore, previousCellsIds, currentCellsIds, score, nextRandIndex, nextCellValue});
 
         promise
             .then(()=>{
@@ -163,22 +163,35 @@ const startApp = (resources)=>{
 
     const moveOpponent = (data)=>
     {
-        const {direction, hasMove, nextRandIndex, nextCellValue} = data;
-        const {_, promise} = opponentGrid.move(direction);
 
+        opponetMovesQueue.push(data);
+ 
+        if (!opponentQueuePlaying){
+            proceedMovesQueue();
+        }
+
+    }
+
+    function proceedMovesQueue(){
+        const data = opponetMovesQueue.pop();
+        const {direction, hasMove, stepScore, previousCellsIds, currentCellsIds, score, nextRandIndex, nextCellValue} = data;
+        const {promise} = opponentGrid.moveDemo(direction, previousCellsIds);
+
+        opponentQueuePlaying = true;
         promise
             .then(()=>{
                 enabled = true;
                 if (hasMove){
                     opponentGrid.addCell(nextRandIndex, nextCellValue);
-                    // scoreboard.setValue(score);
-                    // if (!grid.hasAnyMove()){
-                    //     showGameOver();
-                    //     enabled = false;
-                    // }
                 }
             })
-
+            .then(()=>{
+                if (opponetMovesQueue.length > 0) {
+                    proceedMovesQueue()
+                } else {
+                    opponentQueuePlaying = false;
+                }
+            })
     }
 
     const generateNextCell = (value, grid) =>{

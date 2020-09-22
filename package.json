@@ -2,10 +2,21 @@
   "name": "2048",
   "version": "1.0.0",
   "scripts" : {
-    "build" : "npm run build --prefix server",
-    "start" : "npm run start --prefix server"
+    "install:client" : "npm run install:client --prefix 2048",
+    "build:client" : "npm run build --prefix 2048",
+    "build" : "npm run install:client && npm run build --prefix server",
+    "start" : "npm run start --prefix server",
+    "heroku-postbuild": "npm run build:client"
   },
   "dependencies": {
 
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.7.0",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7",
+    "webpack-dev-server": "^3.8.0"
   }
 }

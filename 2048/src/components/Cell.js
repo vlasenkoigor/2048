@@ -61,6 +61,7 @@ export class Cell extends Container{
     }
 
 
+
     _redraw(){
         const {_view, _shapeCreator, value} = this;
         const color = colors[Math.log2(value) - 1];

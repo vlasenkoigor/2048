@@ -45,6 +45,7 @@ io.on("connection", function (socket) {
     })
 
     socket.on('move', (data)=>{
+        console.log('player', socket.id, 'moved');
         socket.broadcast.emit('move', data);
     })
 
