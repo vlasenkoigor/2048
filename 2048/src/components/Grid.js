@@ -41,14 +41,15 @@ export class Grid extends Container{
 
     moveDemo(direction, previousCellsIds){
         this._syncCellsState(previousCellsIds);
+        console.log(this._cells, previousCellsIds)
         return this.move(direction);
     }
 
     _syncCellsState(previousCellsIds){
         const {_cells} = this;
-
-        if (this._currentTimeLine && this._currentTimeLine.isActive()){
-            this._currentTimeLine.kill();
+        console.log('_syncCellsState',this._currentTimeLine && this._currentTimeLine.isActive() )
+        if (this._currentTimeLine){
+            this._currentTimeLine.seek(this._currentTimeLine.endTime(), true);
         }
 
         for (let i = 0, len = _cells.length; i < len; i++){
@@ -218,7 +219,10 @@ export class Grid extends Container{
         });
 
         this._currentTimeLine = tl;
-        return promise;
+        return promise
+            .then(()=>{
+                this._currentTimeLine = null;
+            })
     }
 
 

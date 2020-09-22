@@ -172,15 +172,16 @@ const startApp = (resources)=>{
     const moveOpponent = (data)=>
     {
 
-        opponetMovesQueue.push(data);
-
-        if (!opponentQueuePlaying){
-            proceedMovesQueue();
-        }
-
+        // opponetMovesQueue.unshift(data);
+        opponetMovesQueue = [data]
+        proceedMovesQueue();
+        // if (!opponentQueuePlaying){
+        //     proceedMovesQueue();
+        // }
     }
 
     function proceedMovesQueue(){
+        // console.log('proceedMovesQueue', opponetMovesQueue)
         const data = opponetMovesQueue.pop();
         const {direction, hasMove, stepScore, previousCellsIds, currentCellsIds, score, nextRandIndex, nextCellValue} = data;
         const {promise} = opponentGrid.moveDemo(direction, previousCellsIds);
@@ -191,16 +192,17 @@ const startApp = (resources)=>{
                 enabled = true;
                 opponentScoreboard.setValue(score);
                 if (hasMove){
+                    console.log('proceedMovesQueue addCell', opponetMovesQueue.length)
                     opponentGrid.addCell(nextRandIndex, nextCellValue);
                 }
             })
-            .then(()=>{
-                if (opponetMovesQueue.length > 0) {
-                    proceedMovesQueue()
-                } else {
-                    opponentQueuePlaying = false;
-                }
-            })
+            // .then(()=>{
+            //     if (opponetMovesQueue.length > 0) {
+            //         proceedMovesQueue()
+            //     } else {
+            //         opponentQueuePlaying = false;
+            //     }
+            // })
     }
 
     const generateNextCell = (value, grid) =>{
