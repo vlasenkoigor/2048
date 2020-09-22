@@ -60,14 +60,14 @@ io.on("connection", function (socket) {
         console.log('game over')
         if (player1.isGameOver && player2.isGameOver){
             if (player1.score > player2.score){
-                player1.socket().emit('match_result', {result : "win", score : player1.score})
-                player2.socket().emit('match_result', {result : "lose", score : player2.score})
+                player1.socket().emit('match_result', {result : "win", score : player1.score, opponentScore : player2.score})
+                player2.socket().emit('match_result', {result : "lose", score : player2.score, opponentScore : player1.score})
             } else if (player2.score > player1.score){
-                player2.socket().emit('match_result', {result : "win", score : player2.score})
-                player1.socket().emit('match_result', {result : "lose", score : player1.score})
+                player2.socket().emit('match_result', {result : "win", score : player2.score, opponentScore : player1.score})
+                player1.socket().emit('match_result', {result : "lose", score : player1.score, opponentScore : player2.score})
             } else if (player1.score === player2.score){
-                player2.socket().emit('match_result', {result : "drawn", score : player2.score})
-                player1.socket().emit('match_result', {result : "drawn", score : player1.score})
+                player2.socket().emit('match_result', {result : "drawn", score : player2.score, opponentScore : player1.score})
+                player1.socket().emit('match_result', {result : "drawn", score : player1.score, opponentScore : player2.score})
             }
         }
     })

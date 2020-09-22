@@ -19,13 +19,14 @@ export class Grid extends Container{
         // grid bg creation
         this._bg = this._drawGridBackground();
         this.addChild(this._bg);
-
         this._cells = generateArray(columns * rows, null);
 
         /**
          * to keep track real active cells amount
          */
         this._cellsCurrentAmount = 0;
+
+        this._currentTimeLine = null;
     }
 
 
@@ -45,11 +46,17 @@ export class Grid extends Container{
 
     _syncCellsState(previousCellsIds){
         const {_cells} = this;
-        console.log(_cells.slice(), previousCellsIds);
+
+        if (this._currentTimeLine && this._currentTimeLine.isActive()){
+            this._currentTimeLine.kill();
+        }
+
         for (let i = 0, len = _cells.length; i < len; i++){
             if (previousCellsIds[i] === null && _cells[i]){
                 _cells[i].destroy();
                 _cells[i] == null;
+            } else if (previousCellsIds[i] !== null && _cells[i] === null){
+                this.addCell(i, previousCellsIds[i]);
             } else if (previousCellsIds[i] !== null && _cells[i].value !== previousCellsIds[i]){
                 _cells[i].setValue(previousCellsIds[i])
             }
@@ -74,7 +81,7 @@ export class Grid extends Container{
         }
     }
 
-   
+
 
     checkMove(direction = directions.RIGHT){
         const isHorzlMove = isHorizontalMove(direction);
@@ -106,7 +113,7 @@ export class Grid extends Container{
         }
 
         const hasMove = !arrayEquals(newCells, prevCells);
-     
+
         const currentCellsIds = newCells.map(cell => cell ? cell.value : null);
 
         return {hasMove, stepScore, previousCellsIds, currentCellsIds, linesAfterMerges, linesAfter, isHorzlMove, newCells};

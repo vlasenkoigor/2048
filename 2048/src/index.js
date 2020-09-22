@@ -63,6 +63,7 @@ const startApp = (resources)=>{
 
         socket.on('match_result', (data)=>{
             console.log('match_result', data)
+            showGameResult(data);
         });
 
         socket.on('playerDisconnected', ()=>{
@@ -77,7 +78,7 @@ const startApp = (resources)=>{
     const layout = resources.layout.data;
 
     const {cellSize, vGap, hGap, userGridPos, opponentGridPos,
-        scoreBoardPos} = layout;
+        scoreBoardPos, OpponentScoreBoardPos} = layout;
 
 
     let enabled = false;
@@ -102,6 +103,12 @@ const startApp = (resources)=>{
     scoreboard.y = scoreBoardPos.y;
 
 
+    const opponentScoreboard = new ScoreBoard(0xBBAE9E);
+    stage.addChild(opponentScoreboard);
+    opponentScoreboard.x = OpponentScoreBoardPos.x;
+    opponentScoreboard.y = OpponentScoreBoardPos.y;
+
+
     const gameOver = new GameOver(()=>{startGame()});
     stage.addChild(gameOver);
     gameOver.x = width / 2;
@@ -119,6 +126,7 @@ const startApp = (resources)=>{
         enabled = true;
         score = 0;
         scoreboard.reset();
+        opponentScoreboard.reset();
 
 
         const initialCells = [];
@@ -165,7 +173,7 @@ const startApp = (resources)=>{
     {
 
         opponetMovesQueue.push(data);
- 
+
         if (!opponentQueuePlaying){
             proceedMovesQueue();
         }
@@ -181,6 +189,7 @@ const startApp = (resources)=>{
         promise
             .then(()=>{
                 enabled = true;
+                opponentScoreboard.setValue(score);
                 if (hasMove){
                     opponentGrid.addCell(nextRandIndex, nextCellValue);
                 }
@@ -206,6 +215,12 @@ const startApp = (resources)=>{
     const showGameOver = ()=>{
         socket.emit('gameOver', score)
         gameOver.visible = true;
+        gameOver.setInfoText();
+    }
+
+    const showGameResult = (data) => {
+        const {result, score, opponentScore} = data;
+        gameOver.setGameResultText(result, score, opponentScore)
     }
 
 

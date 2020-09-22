@@ -1,9 +1,9 @@
 import {Container, Text, Graphics} from 'pixi.js'
 export class ScoreBoard extends Container{
 
-    constructor(){
+    constructor(bgColor = 0x3d3b34){
         super();
-        this._bg = this._drawBackground();
+        this._bg = this._drawBackground(bgColor);
         this.addChild(this._bg);
 
         this._labelTf = this._createLabel();
@@ -22,10 +22,10 @@ export class ScoreBoard extends Container{
     }
 
 
-    _drawBackground(){
+    _drawBackground(bgColor){
         // #3d3b34
         const g = new Graphics();
-        g.beginFill(0x3d3b34);
+        g.beginFill(bgColor);
         g.drawRoundedRect(0,0,106, 72, 8);
         g.endFill();
         g.cacheAsBitmap = true;
@@ -41,7 +41,7 @@ export class ScoreBoard extends Container{
     }
 
     _createValue(){
-        const tf = new Text('17700', valueStyle);
+        const tf = new Text('0', valueStyle);
         tf.x = 7;
         tf.y = 33       ;
         return tf;
