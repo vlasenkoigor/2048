@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import { Grid } from './components/Grid';
 import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
-import {random} from './utils'
+import {getUrlParams, random} from './utils'
 import {GameOver} from "./components/GameOver";
 const width = 1038 , height = 834;
 const app = new PIXI.Application({
@@ -17,6 +17,12 @@ document.body.appendChild(app.view);
 
 const {stage} = app;
 const loader = PIXI.Loader.shared;
+
+const urlParams = getUrlParams(window.location.search);
+const user_id = urlParams.user_id || 'anonymous';
+const room_id = urlParams.room_id || null;
+const hash = urlParams.hash || '';
+
 
 loader.add('layout','/assets/layout.json');
 loader.add('AutoPlay','/assets/AutoPlay.png');
@@ -39,21 +45,40 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io();
-        // socket = io('http://localhost:5001');
+        // socket = io();
+        socket = io('http://localhost:5001/2048');
+
+        socket.emit('join_game', {
+            user_id,
+            room_id,
+            hash
+        });
 
         console.log('waiting for players');
 
-        socket.on('gameInfo', (users)=>{
-            console.log('users', users)
+
+        socket.on('rejected', (data)=>{
+            console.log('rejected', data);
         })
 
-        socket.on('startGame', ()=>{
+        socket.on('joined', (data)=>{
+            console.log('joined',data);
+        })
+
+        socket.on('opponent_joined', (data)=>{
+            console.log('opponent_joined',data);
+        })
+
+        socket.on('opponent_disconnected', (data)=>{
+            console.log('opponent_disconnected',data);
+        })
+
+        socket.on('start_game', ()=>{
             console.log('start game ')
             startGame();
         });
 
-        socket.on('initialCells', (cells)=>{
+        socket.on('initial_cells', (cells)=>{
             setInitialOpponentCells(cells);
         });
 
@@ -65,11 +90,6 @@ const startApp = (resources)=>{
             console.log('match_result', data)
             showGameResult(data);
         });
-
-        socket.on('playerDisconnected', ()=>{
-            enabled = false;
-        })
-
 
     } catch (e) {
         debugger
@@ -137,7 +157,7 @@ const startApp = (resources)=>{
             initialCells.push(cell);
         }
 
-        socket.emit('initialCells', initialCells);
+        socket.emit('initial_cells', initialCells);
     }
 
     const move = direction =>{
@@ -215,7 +235,7 @@ const startApp = (resources)=>{
     }
 
     const showGameOver = ()=>{
-        socket.emit('gameOver', score)
+        socket.emit('game_over', {score})
         gameOver.visible = true;
         gameOver.setInfoText();
     }

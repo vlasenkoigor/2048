@@ -13,7 +13,7 @@ export const forEach = (array, reversed = false, callback) => {
             callback(array[i], i);
         }
     }
-} 
+}
 
 export const arrayEquals = (a, b)=>{
     return Array.isArray(a) &&
@@ -25,3 +25,15 @@ export const arrayEquals = (a, b)=>{
 export const generateArray = (len = 1, fill = null) => {
     return new Array(len).fill(fill)
 }
+
+
+export const getUrlParams = (search) => {
+    const hashes = search.slice(search.indexOf('?') + 1).split('&')
+    const params = {}
+    hashes.map(hash => {
+        const [key, val] = hash.split('=')
+        params[key] = decodeURIComponent(val)
+    })
+    return params
+}
+
