@@ -46,8 +46,8 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        // socket = io("/2048");
-        socket = io('http://localhost:5001/2048');
+        socket = io("/2048");
+        // socket = io('http://localhost:5001/2048');
 
         socket.emit('join_game', {
             user_id,
