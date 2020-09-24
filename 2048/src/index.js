@@ -46,8 +46,8 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io("/2048");
-        // socket = io('http://localhost:5001/2048');
+        // socket = io("/2048");
+        socket = io('http://localhost:5001/2048');
 
         socket.emit('join_game', {
             user_id,
@@ -107,12 +107,14 @@ const startApp = (resources)=>{
 
     // uer grid
     const grid = new Grid(4, 4, cellSize, vGap, hGap);
+    grid._name = 'my grid';
     stage.addChild(grid);
     grid.x = userGridPos.x;
     grid.y = userGridPos.y;
 
     // opponent grid
     const opponentGrid = new Grid(4, 4, cellSize, vGap, hGap);
+    grid._name = 'opponentGrid'
     stage.addChild(opponentGrid);
     opponentGrid.x = opponentGridPos.x;
     opponentGrid.y = opponentGridPos.y;
@@ -210,7 +212,6 @@ const startApp = (resources)=>{
         opponentQueuePlaying = true;
         promise
             .then(()=>{
-                enabled = true;
                 opponentScoreboard.setValue(score);
                 if (hasMove){
                     console.log('proceedMovesQueue addCell', opponetMovesQueue.length)

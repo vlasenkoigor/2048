@@ -264,7 +264,7 @@ export class Grid extends Container{
             this._cells[index] = cell;
             this._cellsCurrentAmount++;
         } else {
-            console.error(`Index ${index} already has the Cell`);
+            console.error(this._name, `Index ${index} already has the Cell`);
         }
 
     }
