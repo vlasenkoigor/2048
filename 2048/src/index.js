@@ -10,13 +10,14 @@ const width = 1038 , height = 834;
 const app = new PIXI.Application({
     width, height,
     backgroundColor: 0xFBF9ED,
+    // resolution: window.devicePixelRatio || 1,
     resolution: window.devicePixelRatio || 1,
-    antialias : true
+    antialias : true,
+    forceCanvas : true
 })
 document.body.appendChild(app.view);
 
-const {stage} = app;
-const loader = PIXI.Loader.shared;
+const {stage, loader} = app;
 
 const urlParams = getUrlParams(window.location.search);
 const user_id = urlParams.user_id || 'anonymous';
@@ -45,8 +46,8 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io("/2048");
-        // socket = io('http://localhost:5001/2048');
+        // socket = io("/2048");
+        socket = io('http://localhost:5001/2048');
 
         socket.emit('join_game', {
             user_id,

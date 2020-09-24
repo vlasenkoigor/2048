@@ -19,13 +19,14 @@ module.exports = (env, argv)=>{
                 }
             ]
         },
+
         devtool: 'cheap-source-map',
         devServer: {
             liveReload: false,
             hot: true,
             contentBase: path.join(__dirname, '../public'),
             publicPath: '/js/'
-        }
+        },
     }
 
 }

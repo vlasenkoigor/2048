@@ -337,18 +337,15 @@ class Game2048 {
                 let {user_id, room_id, hash} = data;
                 room_id = room_id || Game2048.defaultRoom;
 
-                provider.validate_game({
-                    user_id,
-                    room_id,
-                    hash
-                },()=>{
 
-                } , ()=>{
-
-                } );
+                const isGameValid = provider.validate_game({
+                        user_id,
+                        room_id,
+                        hash
+                });
+                console.log(isGameValid ? 'Game is valid' : 'Game is invalid');
 
                 const game = Game2048.getGame(room_id);
-
                 game.registerUser(socket, user_id);
             })
         })

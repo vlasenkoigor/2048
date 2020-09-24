@@ -1,17 +1,17 @@
-import { Container, Graphics, Text, utils, ViewableBuffer } from "pixi.js";
+import { Container, Graphics, Text} from "pixi.js";
 
 const colors = [
-    '#eee4da',
-    '#eee1ce',
-    '#f4b27e',
-    '#f3976b',
-    '#f07f68',
-    '#ee6047',
-    '#efcd72',
-    '#edca64',
-    '#edc651',
-    '#eec745',
-    '#ecc344'
+    0xeee4da,
+    0xeee1ce,
+    0xf4b27e,
+    0xf3976b,
+    0xf07f68,
+    0xee6047,
+    0xefcd72,
+    0xedca64,
+    0xedc651,
+    0xeec745,
+    0xecc344
 ];
 
 const blackStyle = {
@@ -65,13 +65,8 @@ export class Cell extends Container{
     _redraw(){
         const {_view, _shapeCreator, value} = this;
         const color = colors[Math.log2(value) - 1];
-
-        // if (value === 16){
-        //     debugger
-        //     console.log('redraw', color);
-        // }
         _view.clear();
-        _view.beginFill(utils.string2hex(color));
+        _view.beginFill(color);
         _shapeCreator(_view, 0,0);
         _view.endFill();
     }

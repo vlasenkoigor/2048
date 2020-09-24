@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>2048</title>
-
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, width=device-width, height=device-height">
     <style>
         body{
             display: flex;
@@ -19,6 +19,10 @@
     </style>
 </head>
 <body>
+<script>
+    javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+
+</script>
     <script src="./js/main.js"></script>
 </body>
 </html>

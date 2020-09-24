@@ -41,13 +41,11 @@ export class Grid extends Container{
 
     moveDemo(direction, previousCellsIds){
         this._syncCellsState(previousCellsIds);
-        console.log(this._cells, previousCellsIds)
         return this.move(direction);
     }
 
     _syncCellsState(previousCellsIds){
         const {_cells} = this;
-        console.log('_syncCellsState',this._currentTimeLine && this._currentTimeLine.isActive() )
         if (this._currentTimeLine){
             this._currentTimeLine.seek(this._currentTimeLine.endTime(), true);
         }
