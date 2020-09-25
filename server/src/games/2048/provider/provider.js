@@ -48,6 +48,32 @@ module.exports = {
                     reject(getError(error));
                 });
         })
+    },
+
+
+    save_result : (user_id, room_id)=>{
+
+        /**
+         game_id- можно найти на странице developer для каждой игры он свой
+         user_id - id пользователя в системе MP
+         room_id - идентификатор данного матча
+         hash - md5($game_id.':'.$user_id.':'.$room_id.':'. $secret)
+         */
+
+        const game_id = GAME_ID;
+        const string = [game_id, user_id, room_id, SECRET].join(':');
+
+        const hash = md5(string);
+
+        const params = {
+            game_id,
+            user_id,
+            room_id,
+            hash
+        }
+
+        axios.post(UIEvent)
+
     }
 
 }

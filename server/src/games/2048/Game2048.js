@@ -113,7 +113,7 @@ class Game2048 {
             console.log(err_message);
         }
 
-        const user_data = data && data.status === 200 ? data.data.user : null;
+        const user_data = data && data.status === 200 ? data.data : null;
         if (!user_data && !ignoreFails) return;
         console.log(user_data)
         player.data = user_data;
@@ -139,9 +139,9 @@ class Game2048 {
     }
 
 
-    // _saveUserResult(user_id, ){_saveUserResult
-    //     return provider.save_result();
-    // }
+    _saveUserResult(user_id, ){
+        return provider.save_result();
+    }
 
     /**
      * find player
