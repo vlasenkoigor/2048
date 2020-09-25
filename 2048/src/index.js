@@ -6,6 +6,7 @@ import { ScoreBoard } from './components/ScoreBoard';
 import directions from './directions';
 import {getUrlParams, random} from './utils'
 import {GameOver} from "./components/GameOver";
+import {PlayerInfo} from "./components/PlayerInfo";
 const width = 1038 , height = 834;
 const app = new PIXI.Application({
     width, height,
@@ -23,6 +24,7 @@ const urlParams = getUrlParams(window.location.search);
 const user_id = urlParams.user_id || 'anonymous';
 const room_id = urlParams.room_id || null;
 const hash = urlParams.hash || '';
+const ignoreProviderFails = urlParams.ignoreProviderFails || 0;
 
 
 loader.add('layout','/assets/layout.json');
@@ -46,23 +48,36 @@ const startApp = (resources)=>{
 
     try{
         console.log('connecting to the server')
-        socket = io("/2048");
-        // socket = io('http://localhost:5001/2048');
+        // socket = io("/2048");
+        socket = io('http://localhost:5001/2048');
 
         socket.emit('join_game', {
             user_id,
             room_id,
-            hash
+            hash,
+            ignoreProviderFails
         });
 
         console.log('waiting for players');
 
+        socket.on('notification', (data)=>{
+            console.log(`%cNotification%c ${data.message}`, 'color:black; background:yellow', 'color:#9c381c')
+        })
 
         socket.on('rejected', (data)=>{
-            console.log('rejected', data);
+            console.log(`%cRejected%c ${data.reason}`, 'color:white; background:#605500', 'color:#9c381c')
+        })
+
+        socket.on('request_fails', (data)=>{
+            console.log(`%cREQ FAILS%c ${data.message}`, 'color:white; background:red', 'color:#9c381c')
         })
 
         socket.on('joined', (data)=>{
+            // const me = data.users.find(u=>u.me);
+            // if (me && me.data){
+                // addUserInfo(me.data)
+            // }
+
             console.log('joined',data);
         })
 
@@ -137,10 +152,16 @@ const startApp = (resources)=>{
     gameOver.x = width / 2;
     gameOver.y = height /2;
 
+
     const setInitialOpponentCells = (cells)=>{
         cells.forEach((cell)=>{
             opponentGrid.addCell(...cell)
         })
+    }
+
+    const addUserInfo = (data)=>{
+        const playerInfo = new PlayerInfo(data);
+        stage.addChild(playerInfo);
     }
 
     const startGame = ()=>{

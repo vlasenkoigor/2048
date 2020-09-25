@@ -1,4 +1,4 @@
-module.exports = (room_id, user_id, reason = 1)=>{
+module.exports = (room_id, user_id, reason = 1, users = [])=>{
     let message = '';
     switch (reason) {
 
@@ -11,11 +11,15 @@ module.exports = (room_id, user_id, reason = 1)=>{
         case 3 :
             message = `User #${user_id} already connected to the game #${room_id}`;
             break;
+        case 4 :
+            message = `Game hash validation fails`;
+            break;
         default:
             break;
     }
 
     return {
         reason : message,
+        users
     }
 }

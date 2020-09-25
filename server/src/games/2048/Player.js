@@ -25,6 +25,8 @@ class Player {
          * @type {boolean}
          */
         this.gameover = false;
+
+        this.data = {};
     }
 
     /**
@@ -55,10 +57,16 @@ class Player {
 
     /**
      * get info
-     * @return {string}
+     * @return {Object}
      */
-    getInfo(){
-        return `id : ${this.id}, active : ${this.active ? 'true' : 'false'}, socketID : ${!this.socket ? 'null' : this.socket.id}`
+    getInfo(me = false){
+        return {
+            id : this.id,
+            active : this.active,
+            socket : this.getSocketId(),
+            data : this.data,
+            me
+        }
     }
 
     /**
@@ -67,6 +75,8 @@ class Player {
     completeGame(){
         this.gameover = true;
     }
+
+
 }
 
 module.exports = Player;

@@ -1,11 +1,13 @@
 module.exports = {
     // server -> client
     REJECTED : 'rejected',
+    REQUEST_FAILS : 'request_fails',
     JOINED : 'joined',
     OPPONENT_JOINED : 'opponent_joined',
     OPPONENT_DISCONNECTED : 'opponent_disconnected',
     START_GAME : 'start_game',
     MATCH_RESULT : 'match_result',
+    NOTIFICATION : 'notification',
 
     // client -> server
     JOIN_GAME : 'join_game',

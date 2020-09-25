@@ -4,13 +4,15 @@ const rules = require('./rules');
 const provider = require('./provider/provider');
 const Player = require('./Player.js');
 const gamesHash = {};
-
+let ignoreFails = false;
 let io = null;
 
 class Game2048 {
 
     constructor(room_id) {
         this._room_id = room_id;
+
+        this.startedAt = + new Date();
 
         this.gameStarted = false;
 
@@ -45,11 +47,11 @@ class Game2048 {
      * @param socket
      * @param user_id
      */
-    registerUser(socket, user_id) {
+    async registerUser(socket, user_id) {
 
         // reject if game already started
         if (this.gameStarted){
-            socket.emit(types.REJECTED, messages.rejected(this._room_id, 2));
+            socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 2));
             console.log(messages.rejected(this._room_id, user_id, 2));
             return;
         }
@@ -68,19 +70,20 @@ class Game2048 {
         // we reject socket
         if (player && player.active){
             socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 3));
-            console.log(messages.rejected(this._room_id, user_id, 3));
+            console.log(messages.rejected(this._room_id, user_id, 3, this._getUsersListInfo()));
             return;
 
         } else if (player && !player.active){
             // check if player disconnected and trying to reconnect
             player.activate(socket);
-            this._onUserJoined(socket, user_id, true);
+            await this._onUserJoined(socket, player, true);
         }
 
         // if player was not connected - to create the user
         if (!player){
-            this._players.push(new Player(user_id, socket));
-            this._onUserJoined(socket, user_id, false);
+            const player = new Player(user_id, socket)
+            this._players.push(player);
+            await this._onUserJoined(socket, player, false);
         }
 
         this._printUsers();
@@ -91,18 +94,36 @@ class Game2048 {
     /**
      * un user joined
      * @param socket
-     * @param user_id
+     * @param player
      * @param reconnected
      * @private
      */
-    _onUserJoined(socket, user_id, reconnected = false){
+    async _onUserJoined(socket, player, reconnected = false){
         const room_id = this._room_id;
+        const user_id = player.id;
+
+        socket.emit(types.NOTIFICATION, messages.notification('Getting user information...'))
+        console.log('Getting user information .....')
+        let data = null;
+        try {
+            data = await this._getPlayerData(user_id);
+        } catch (e) {
+            const err_message = e ? `Error : ${e.status} - ${e.statusText}; message : ${e.data ? e.data.error.message : ''}` : 'unknown error';
+            socket.emit(types.REQUEST_FAILS, messages.notification(err_message))
+            console.log(err_message);
+        }
+
+        const user_data = data && data.status === 200 ? data.data.user : null;
+        if (!user_data && !ignoreFails) return;
+        console.log(user_data)
+        player.data = user_data;
 
         socket.join(room_id);
-        socket.emit(types.JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo()));
+        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id)));
+
         socket
             .to(this._room_id).broadcast
-            .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo()));
+            .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo(user_id)));
 
         // subscribe to the disconnect event
         socket.on(types.DISCONNECT, ()=>{
@@ -111,8 +132,16 @@ class Game2048 {
 
         this._setupGameListeners(socket);
 
-        console.log(messages.joined(user_id, room_id, reconnected));
     }
+
+    _getPlayerData(user_id){
+       return provider.get_info(user_id, this._room_id);
+    }
+
+
+    // _saveUserResult(user_id, ){_saveUserResult
+    //     return provider.save_result();
+    // }
 
     /**
      * find player
@@ -295,11 +324,11 @@ class Game2048 {
 
     /**
      * get users array contains user info
-     * @return {string[]}
+     * @return {Object[]}
      * @private
      */
-    _getUsersListInfo(){
-        return this._players.map(p => p.getInfo())
+    _getUsersListInfo(my_id = null){
+        return this._players.map(p => p.getInfo(p.id === my_id))
     }
 
     /**
@@ -334,21 +363,36 @@ class Game2048 {
 
             // wait till client sends join_game event
             socket.on(types.JOIN_GAME, (data)=>{
-                let {user_id, room_id, hash} = data;
+                let {user_id, room_id, hash, ignoreProviderFails = 0} = data;
                 room_id = room_id || Game2048.defaultRoom;
 
+                ignoreFails = ignoreProviderFails ? ignoreProviderFails === '1' : false;
 
+                socket.emit(types.NOTIFICATION, messages.notification('Validating hash...'));
                 const isGameValid = provider.validate_game({
                         user_id,
                         room_id,
                         hash
                 });
+                Game2048.notifyGameValidation(socket, isGameValid, user_id, room_id, hash)
                 console.log(isGameValid ? 'Game is valid' : 'Game is invalid');
 
-                const game = Game2048.getGame(room_id);
-                game.registerUser(socket, user_id);
+                if (isGameValid || ignoreFails){
+                    const game = Game2048.getGame(room_id);
+                    game.registerUser(socket, user_id);
+                } else {
+                    socket.emit(types.REJECTED, messages.rejected(room_id, user_id, 4));
+                }
             })
         })
+    }
+
+    static notifyGameValidation(socket, isGameValid, user_id, room_id, hash){
+        let message = `Game #${room_id} is ${isGameValid ? 'valid' : 'invalid'}; user id = ${user_id}, hash = ${hash}.`;
+        if (ignoreFails && !isGameValid){
+            message += 'But you are in ignore mode and you are permitted to play'
+        }
+        socket.emit(types.NOTIFICATION, messages.notification(message));
     }
 }
 

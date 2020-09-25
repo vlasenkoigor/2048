@@ -7,8 +7,10 @@ const API_URL = "https://mindplays.com/api/v1/info_game";
 
 
 function getError (error){
-    console.log('111111',error)
+    console.log(error)
     const {response} = error;
+    if (!response) return {status: 'NR', statusText: 'No response!'}
+
     const {status, statusText, data} = response
 
     return {
