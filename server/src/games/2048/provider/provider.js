@@ -3,11 +3,10 @@ const md5 = require('md5');
 
 const SECRET = "grDFYFV3b84RgieQbUOP1DJXQYBCRnU7BsEYg5o0brTS";
 const GAME_ID = 1;
-const API_URL = "https://mindplays.com/api/v1/info_game";
+const API_URL = "https://mindplays.com/api/v1";
 
 
 function getError (error){
-    console.log(error)
     const {response} = error;
     if (!response) return {status: 'NR', statusText: 'No response!'}
 
@@ -27,20 +26,19 @@ module.exports = {
     },
 
     get_info : (user_id, room_id )=>{
+        const game_id = GAME_ID;
+        const string = [game_id, user_id, room_id, SECRET].join(':');
+        const hash = md5(string);
+
+        const params = {
+            game_id,
+            user_id,
+            room_id,
+            hash
+        }
+
         return new Promise((resolve, reject)=>{
-
-            const game_id = GAME_ID;
-            const string = [game_id, user_id, room_id, SECRET].join(':');
-            const hash = md5(string);
-
-            const params = {
-                game_id,
-                user_id,
-                room_id,
-                hash
-            }
-
-            axios.post(API_URL, params)
+            axios.post(API_URL + '/info_game', params)
                 .then(response => {
                     resolve(response.data);
                 })
@@ -51,13 +49,17 @@ module.exports = {
     },
 
 
-    save_result : (user_id, room_id)=>{
+    save_result : (user_id, room_id, result_amount = 0, start_timestamp = 0, finish_timestamp = 0, data = {}  )=>{
 
         /**
-         game_id- можно найти на странице developer для каждой игры он свой
          user_id - id пользователя в системе MP
+         game_id - можно найти на странице developer для каждой игры он свой
          room_id - идентификатор данного матча
+         result_amount - итоговый баланс пользователя после игры (начальный баланс был доступен в запросе info_game)
+         start_timestamp - Unix-время начала игры
+         finish_timestamp - Unix-время окончания игры
          hash - md5($game_id.':'.$user_id.':'.$room_id.':'. $secret)
+         data - * массив данных действий текущего пользователя против других игроков, иными словами это все операции произведенные пользователем и его средствами против других играков
          */
 
         const game_id = GAME_ID;
@@ -66,13 +68,28 @@ module.exports = {
         const hash = md5(string);
 
         const params = {
-            game_id,
             user_id,
+            game_id,
             room_id,
-            hash
+            result_amount,
+            start_timestamp,
+            finish_timestamp,
+            hash,
+            data
         }
 
-        axios.post(UIEvent)
+        console.log('save result', params);
+
+        return new Promise((resolve, reject)=>{
+            axios.post(API_URL + '/result_game', params)
+                .then(response => {
+                    resolve(response.data);
+                })
+                .catch(error => {
+                    reject(getError(error));
+                });
+        })
+
 
     }
 

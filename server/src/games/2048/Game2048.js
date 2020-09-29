@@ -12,7 +12,9 @@ class Game2048 {
     constructor(room_id) {
         this._room_id = room_id;
 
-        this.startedAt = + new Date();
+        this._startedAt = + new Date();
+
+        this._finishedAt = + new Date();
 
         this.gameStarted = false;
 
@@ -115,15 +117,15 @@ class Game2048 {
 
         const user_data = data && data.status === 200 ? data.data : null;
         if (!user_data && !ignoreFails) return;
-        console.log(user_data)
+        console.log(user_data);
         player.data = user_data;
 
         socket.join(room_id);
-        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id)));
+        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), {time : rules.time}));
 
         socket
             .to(this._room_id).broadcast
-            .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo(user_id)));
+            .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo()));
 
         // subscribe to the disconnect event
         socket.on(types.DISCONNECT, ()=>{
@@ -139,8 +141,69 @@ class Game2048 {
     }
 
 
-    _saveUserResult(user_id, ){
-        return provider.save_result();
+    _saveUserResult(user, opponent){
+        const
+            user_id = user.id,
+            room_id = this._room_id,
+            start_timestamp = this._startedAt,
+            finish_timestamp = this._finishedAt,
+            [result_amount, data] = this._calculateUserResultAmount(user, opponent);
+
+        return provider.save_result(
+            user_id,
+            room_id,
+            result_amount,
+            start_timestamp / 1000,
+            finish_timestamp / 1000,
+            data
+        );
+    }
+
+    /**
+     *
+     * @param user {Player}
+     * @param opponent {Player}
+     * @return {number|undefined|*}
+     * @private
+     */
+    _calculateUserResultAmount(user, opponent){
+        let data = []; // calculation data
+
+        let result = 0;
+
+        let operation_type = null,
+            amount = 0,
+            opponent_id = opponent.id,
+            comment = ''
+
+        if (this._result === 'drawn'){
+            result =  user.getUserAmount();
+            amount = 0;
+            comment = 'drawn;';
+        }
+
+        if (user === this._loser){
+            result = 0;
+            amount = user.getUserAmount();
+            operation_type = 2;
+            comment = `Lose ${amount}`;
+        }
+
+        if (user === this._winner){
+            result = user.getUserAmount() + opponent.getUserAmount();
+            amount = opponent.getUserAmount();
+            operation_type = 1;
+            comment = `win ${amount}`;
+        }
+
+        data.push({
+            operation_type,
+            amount,
+            opponent_id,
+            comment
+        });
+
+        return [result, data];
     }
 
     /**
@@ -191,6 +254,8 @@ class Game2048 {
         this._printUsers();
 
         this.gameStarted = true;
+        this._startedAt = +new Date();
+
         io.to(this._room_id).emit(types.START_GAME)
     }
 
@@ -221,6 +286,8 @@ class Game2048 {
      * @private
      */
     _onPlayerMoved(socket, data) {
+        if (this.gameCompleted) return;
+
         socket.to(this._room_id).broadcast
             .emit(types.MOVE, data);
     }
@@ -233,7 +300,8 @@ class Game2048 {
      * @private
      */
     _onGameOver(socket, data){
-        // todo - build hash of players by socket id;
+        if (this.gameCompleted) return;
+
         const player = this._players.find(p => p.getSocketId() === socket.id);
         const {score} = data;
 
@@ -246,6 +314,7 @@ class Game2048 {
         // if both players completed to play
         if (player1.gameover && player2.gameover){
             this.gameCompleted = true;
+            this._finishedAt = +new Date();
 
             // define result
             this._defineResult();
@@ -257,6 +326,27 @@ class Game2048 {
                 this._sendWinnerMessage();
                 this._sendLoserMessage();
             }
+
+            // save results
+            io.emit(types.NOTIFICATION, messages.notification('Saving results...'))
+            Promise.all([
+                this._saveUserResult(player1, player2),
+                this._saveUserResult(player2, player1)
+            ])
+                .then((response)=>{
+                    console.log('result saved', response)
+                    io.emit(types.NOTIFICATION, messages.notification('Result saved'))
+
+                })
+                .catch(e=>{
+                    console.log(e)
+                    const {status, statusText} = e;
+                    const message = e.data && e.error ? e.data.error.message : e.data ? e.data.message : 'unknown error';
+
+                    const err_message = `Error : ${status} - ${statusText}; message : ${message}`;
+                    io.emit(types.REQUEST_FAILS, messages.notification(err_message))
+                    console.log(err_message);
+                })
         }
     }
 

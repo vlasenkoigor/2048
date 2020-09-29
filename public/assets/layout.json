@@ -2,9 +2,166 @@
   "cellSize" : 96,
   "vGap": 10,
   "hGap": 10,
-  "userGridPos" : {"x":  50, "y" :  298},
-  "opponentGridPos" : {"x":  564, "y" :  298},
+  "userGridPos" : {"x":  57, "y" :  298},
+  "scoreBoardPos" : {"x": 47, "y" : 206},
 
-  "scoreBoardPos" : {"x": 40, "y" : 206},
-  "OpponentScoreBoardPos" : {"x": 879, "y" : 206}
+  "opponentGridPos" : {"x":  567, "y" :  298},
+  "OpponentScoreBoardPos" : {"x": 882, "y" : 206},
+
+  "playerInfoLayout" : {
+    "x" : 166,
+    "y" : 218,
+
+    "avatar": {
+      "x" : 0,
+      "y" : 0,
+      "width" : 48,
+      "height" : 48,
+      "radius" : 50
+    },
+    "flag" : {
+      "x" : 55,
+      "y" : 32,
+      "width" : 15,
+      "height" : 10
+    },
+    "countryName" : {
+      "x" : 75,
+      "y" : 30
+    },
+    "userName" : {
+      "x" : 55,
+      "y" : 5
+    }
+  },
+
+
+  "opponentInfoLayout" : {
+    "x" : 651,
+    "y" : 218,
+
+    "avatar": {
+      "x" : 165,
+      "y" : 0,
+      "width" : 48,
+      "height" : 48,
+      "radius" : 50
+    },
+    "flag" : {
+      "x" : 143,
+      "y" : 32,
+      "width" : 15,
+      "height" : 10
+    },
+    "countryName" : {
+      "x" : 138,
+      "y" : 30,
+      "anchor" : {
+        "x": 1,
+        "y" : 0
+      }
+    },
+    "userName" : {
+      "x" : 160,
+      "y" : 5,
+      "anchor" : {
+        "x": 1,
+        "y" : 0
+      }
+    }
+  },
+  "vsLabelLayout" : {
+    "x" : 519,
+    "y" : 230,
+    "anchor" : {
+      "x": 0.5,
+      "y" : 0.5
+    }
+  },
+  "timerLayout" : {
+    "x" : 519,
+    "y" : 100,
+    "hasTitle" : true,
+    "title" : {
+      "x" : 0,
+      "y" : 0,
+      "anchor" : {
+        "x": 0.5,
+        "y" : 0.5
+      }
+    },
+    "tf" : {
+      "x" : 0,
+      "y" : 30,
+      "anchor" : {
+        "x": 0.5,
+        "y" : 0.5
+      }
+    },
+    "progress" : {
+      "x" : 0,
+      "y" : 70,
+      "width" : 465,
+      "height" : 4,
+      "radius" : 20,
+      "gap" : 10
+    }
+  },
+  "logoLayout" :{
+    "x" : 120,
+    "y" : 60,
+
+    "text1": {
+      "x" : 0,
+      "y" : 0,
+      "anchor" : {
+        "x" : 0.5,
+        "y" : 0.5
+      }
+    },
+    "text2": {
+      "x" : 0,
+      "y" : 40,
+      "anchor" : {
+        "x" : 0.5,
+        "y" : 0.5
+      }
+    }
+  },
+
+
+  "gameInfoLayout" :{
+    "x" : 816,
+    "y" : 25,
+    "width" : 185,
+    "height" : 86,
+    "radius": 8,
+    "label" : {
+      "y" : 15,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0
+      }
+    } ,
+    "value" : {
+      "x" : 170,
+      "y" : 60,
+      "anchor" : {
+        "x": 1,
+        "y": 0.5
+      }
+    }
+  },
+
+  "surrenderLayout" : {
+    "x" : 47,
+    "y" : 740,
+    "width" : 434,
+    "height" : 40,
+    "radius": 8,
+    "anchor" : {
+      "x": 0,
+      "y" : 0
+    }
+  }
 }

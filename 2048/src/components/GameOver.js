@@ -22,7 +22,11 @@ export class GameOver extends Container{
         this.setGameResultText();
     }
 
-    setInfoText(){
+    setTimesUpText(){
+        this._tf.text = 'Time is up!\nGetting game results!'
+    }
+
+    setGameOverText(){
         this._tf.text = 'Game Over\nWaiting for the opponent\ncomplete the game'
     }
 

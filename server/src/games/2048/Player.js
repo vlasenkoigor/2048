@@ -69,6 +69,10 @@ class Player {
         }
     }
 
+    getUserAmount(){
+        return this.data ? parseFloat(this.data.amount) : 0;
+    }
+
     /**
      * mark that user completed the game
      */
