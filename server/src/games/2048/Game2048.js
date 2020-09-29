@@ -358,9 +358,9 @@ class Game2048 {
         const player1 = this._players[0];
         const player2 = this._players[1];
 
-        player1.socket
+        player1.socket && player1.socket
             .emit(types.MATCH_RESULT, messages.match_result(this._result, player1.score, player2.score));
-        player2.socket
+        player2.socket && player2.socket
             .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score));
     }
 
@@ -369,7 +369,7 @@ class Game2048 {
      * @private
      */
     _sendWinnerMessage(){
-        this._winner.socket
+        this._winner.socket && this._winner.socket
             .emit(types.MATCH_RESULT, messages.match_result('win', this._winner.score, this._loser.score));
     }
 
@@ -378,7 +378,7 @@ class Game2048 {
      * @private
      */
     _sendLoserMessage(){
-        this._loser.socket
+        this._loser.socket && this._loser.socket
             .emit(types.MATCH_RESULT, messages.match_result('lose', this._loser.score, this._winner.score));
     }
 

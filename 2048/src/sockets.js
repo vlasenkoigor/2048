@@ -32,7 +32,7 @@ export function setupNetworkEvents(game, socket){
         const opponent = data.users.find(u=>!u.me);
 
         if (me && me.data){
-            game.setPrizeValue(me.data.amount);
+            game.setPrizeValue(me.data.amount * 2);
             game.setPlayerInfo(me.data);
         }
 

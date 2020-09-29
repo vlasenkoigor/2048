@@ -371,9 +371,9 @@ export class Game {
      */
     gameOver(timesUp = false){
         this.isGameOver = true;
-        if (!timesUp){
-            this.timer.stop();
-        }
+        // if (!timesUp){
+        //     this.timer.stop();
+        // }
         this.socket.emit('game_over', {score : this.score})
         this.showGameOver(timesUp);
         this.enabled = false;
