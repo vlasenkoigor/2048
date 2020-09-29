@@ -2,8 +2,10 @@ import {Container, Sprite, Graphics, Text, Texture} from 'pixi.js'
 
 export class PlayerInfo extends Container{
     constructor(data = {}, scoreBoardLayout) {
-        const {name, photo, location, location_img} = data.user;
         super();
+
+        const user = data.user || {};
+        const {name, photo, location, location_img} = user;
 
         this.avatar = this._createAvatar(photo, scoreBoardLayout.avatar);
 

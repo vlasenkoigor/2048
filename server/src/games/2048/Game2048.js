@@ -225,6 +225,9 @@ class Game2048 {
         const player = this._players.find(p => p.getSocketId() === socket.id);
 
         if (player){
+            if (this.gameStarted && !this.gameCompleted){
+                player.completeGame();
+            }
             // deactivate user and send broadcast notification
             player.deactivate();
             socket
@@ -287,6 +290,14 @@ class Game2048 {
      */
     _onPlayerMoved(socket, data) {
         if (this.gameCompleted) return;
+
+        const {score} = data;
+
+        const player = this._players.find(p => p.getSocketId() === socket.id);
+
+        if (player){
+            player.score = score;
+        }
 
         socket.to(this._room_id).broadcast
             .emit(types.MOVE, data);

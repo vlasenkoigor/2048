@@ -37,7 +37,7 @@ export class Timer extends Container{
     }
 
     setTimerValue(value){
-        this.timerValue = value;
+        this.timerValue = value < 0 ? 0 : value;
         const minutes = Math.floor(value / 60);
         const seconds = value % 60;
 
@@ -128,7 +128,7 @@ export class Timer extends Container{
     _onSecondTick(){
         this.timerValue--
         this.setTimerValue(this.timerValue);
-        if (this.timerValue === 0) {
+        if (this.timerValue <= 0) {
             this._completeCallback();
             clearInterval(this.uuid)
         }
