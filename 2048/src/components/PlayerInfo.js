@@ -25,15 +25,16 @@ export class PlayerInfo extends Container{
 
     _createAvatar(photo, layout){
         const avatar = Sprite.fromImage(photo, "");
-        const {x, y, width, height, radius} = layout;
+        const {x, y, width, height} = layout;
         avatar.x = x;
         avatar.y = y;
         avatar.width = width;
         avatar.height = height;
 
         const mask = new Graphics();
+        const radius = Math.max(width, height) / 2;
         mask.beginFill(0xD9D9D9);
-        mask.drawRoundedRect(x, y, width, height, radius);
+        mask.drawCircle(x + radius, y + radius, radius);
         mask.endFill();
         avatar.mask = mask;
 

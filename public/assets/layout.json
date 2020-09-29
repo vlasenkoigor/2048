@@ -16,8 +16,7 @@
       "x" : 0,
       "y" : 0,
       "width" : 48,
-      "height" : 48,
-      "radius" : 50
+      "height" : 48
     },
     "flag" : {
       "x" : 55,
@@ -44,8 +43,7 @@
       "x" : 165,
       "y" : 0,
       "width" : 48,
-      "height" : 48,
-      "radius" : 50
+      "height" : 48
     },
     "flag" : {
       "x" : 143,
