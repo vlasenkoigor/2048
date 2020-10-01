@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --mode=development",
-    "install:client": "npm i",
     "build": "webpack --mode=production"
   },
   "author": "",
