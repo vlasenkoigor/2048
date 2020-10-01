@@ -126,6 +126,7 @@ export class Timer extends Container{
     }
 
     _onSecondTick(){
+        console.log('tick', this.timerValue)
         this.timerValue--
         this.setTimerValue(this.timerValue);
         if (this.timerValue <= 0) {
