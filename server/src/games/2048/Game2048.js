@@ -71,22 +71,14 @@ class Game2048 {
         // is player already connected
         // we reject socket
         if (player && player.active){
+            // already connected
             socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 3));
             console.log(messages.rejected(this._room_id, user_id, 3, this._getUsersListInfo()));
             return;
-
-        } else if (player && !player.active){
-            // check if player disconnected and trying to reconnect
-            player.activate(socket);
-            await this._onUserJoined(socket, player, true);
         }
 
-        // if player was not connected - to create the user
-        if (!player){
-            const player = new Player(user_id, socket)
-            this._players.push(player);
-            await this._onUserJoined(socket, player, false);
-        }
+        await this._onUserJoined(socket, user_id, player);
+
 
         this._printUsers();
         // if we have all players in the game - start the game
@@ -94,15 +86,18 @@ class Game2048 {
     }
 
     /**
-     * un user joined
+     * user joined
      * @param socket
+     * @param user_id
      * @param player
-     * @param reconnected
      * @private
      */
-    async _onUserJoined(socket, player, reconnected = false){
+    async _onUserJoined(socket, user_id, player){
         const room_id = this._room_id;
-        const user_id = player.id;
+
+        const reconnected = !!player;
+
+        if (!player) player = new Player(user_id, socket);
 
         socket.emit(types.NOTIFICATION, messages.notification('Getting user information...'))
         console.log('Getting user information .....')
@@ -117,8 +112,13 @@ class Game2048 {
 
         const user_data = data && data.status === 200 ? data.data : null;
         if (!user_data && !ignoreFails) return;
-        console.log(user_data);
+
         player.data = user_data;
+        if (reconnected){
+            player.activate(socket);
+        } else {
+            this._players.push(player);
+        }
 
         socket.join(room_id);
         socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), {time : rules.time}));
@@ -137,6 +137,11 @@ class Game2048 {
     }
 
     _getPlayerData(user_id){
+        const wait = ()=>{
+            return new Promise((resolve)=>{
+
+            })
+        }
        return provider.get_info(user_id, this._room_id);
     }
 

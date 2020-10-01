@@ -362,7 +362,6 @@ export class Game {
     }
 
     quitGame(){
-        this.surrenderButton.disable();
         this.gameOver(false);
     }
 
@@ -370,9 +369,10 @@ export class Game {
      * game over
      */
     gameOver(timesUp = false){
-        this.isGameOver = true;
+        this.socket.emit('game_over', {score : this.score});
 
-        this.socket.emit('game_over', {score : this.score})
+        this.isGameOver = true;
+        this.surrenderButton.disable();
         this.showGameOver(timesUp);
         this.enabled = false;
     }
@@ -449,7 +449,14 @@ export class Game {
         const randNumber = random(0, optionsIndexes.length-1);
         const randIndex = optionsIndexes[randNumber];
 
-        value = value || [2,4][random(0,1)]
+        if (!value){
+            const chanceMap = {
+                2 : 80,
+                4 : 20
+            };
+            const rnd = random(0, 100);
+            value = rnd <= chanceMap[2] ? 2 : 4;
+        }
         return [randIndex, value]
     }
 
