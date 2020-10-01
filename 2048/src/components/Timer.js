@@ -5,6 +5,7 @@ export class Timer extends Container{
     constructor(layout) {
         super();
 
+        this.lastTime = +new Date();
         //seconds
         this.timerValue = 5 * 60;
 
@@ -115,6 +116,7 @@ export class Timer extends Container{
         this.setTimerValue(time);
         this.uuid = setInterval(this._onSecondTick.bind(this), 1000);
         this.startTime = +new Date();
+        this.lastTime = +new Date();
         this.finishTime = this.startTime + time * 1000;
         this._completeCallback = callback;
         ticker.shared.add(this._onTick, this);
@@ -126,7 +128,9 @@ export class Timer extends Container{
     }
 
     _onSecondTick(){
-        console.log('tick', this.timerValue, Math.floor(+new Date() / 1000))
+        const t = +new Date();
+        console.log('tick', this.timerValue, t - this.lastTime);
+        this.lastTime = t;
         this.timerValue--
         this.setTimerValue(this.timerValue);
         if (this.timerValue <= 0) {
