@@ -5,6 +5,7 @@ export function connect() {
     try {
         socket = window.location.hostname === 'localhost'
             ? io('http://localhost:5000/2048')
+            // ? io('https://game2048multiplayer.herokuapp.com/2048')
             : io("/2048");
     } catch (e) {
         console.log('connection error', e)
@@ -15,6 +16,26 @@ export function connect() {
 
 
 export function setupNetworkEvents(game, socket){
+
+    socket.on("disconnect", function() {
+        console.log("Disconnected");
+    });
+
+    socket.on("reconnect", function() {
+        // do not rejoin from here, since the socket.id token and/or rooms are still
+        // not available.
+        console.log("Reconnecting");
+    });
+
+    socket.on("connect", function() {
+        // thats the key line, now register to the room you want.
+        // info about the required rooms (if its not as simple as my
+        // example) could easily be reached via a DB connection. It worth it.
+
+        console.log('connect')
+
+    });
+
     socket.on('notification', (data)=>{
         console.log(`%cNotification%c ${data.message}`, 'color:black; background:yellow', 'color:#9c381c')
     })

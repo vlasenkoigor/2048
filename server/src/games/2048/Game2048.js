@@ -51,17 +51,18 @@ class Game2048 {
      */
     async registerUser(socket, user_id) {
 
+
         // reject if game already started
         if (this.gameStarted){
             socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 2));
-            console.log(messages.rejected(this._room_id, user_id, 2));
+            // console.log(messages.rejected(this._room_id, user_id, 2));
             return;
         }
 
         // reject if game reached players limit
         if (this._players.length === rules.players_limit && !this._findPlayer(user_id)) {
             socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 1));
-            console.log(messages.rejected(this._room_id, user_id, 1));
+            // console.log(messages.rejected(this._room_id, user_id, 1));
             return;
         }
 
@@ -73,7 +74,7 @@ class Game2048 {
         if (player && player.active){
             // already connected
             socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 3));
-            console.log(messages.rejected(this._room_id, user_id, 3, this._getUsersListInfo()));
+            // console.log(messages.rejected(this._room_id, user_id, 3, this._getUsersListInfo()));
             return;
         }
 
@@ -442,7 +443,7 @@ class Game2048 {
      * @private
      */
     _printUsers(){
-        console.log(`room #${this._room_id}`, this._getUsersListInfo())
+        // console.log(`room #${this._room_id}`, this._getUsersListInfo())
     }
 
     /**
@@ -469,6 +470,7 @@ class Game2048 {
 
             // wait till client sends join_game event
             socket.on(types.JOIN_GAME, (data)=>{
+                console.log(`socket # ${socket.id} joining game`)
                 let {user_id, room_id, hash, ignoreProviderFails = 0} = data;
                 room_id = room_id || Game2048.defaultRoom;
 
