@@ -199,7 +199,7 @@ export class Game {
         gameOver.y = this.height /2;
         this.gameOverPopup = gameOver;
 
-        this.startGame();
+        // this.startGame();
     }
 
     join(){
