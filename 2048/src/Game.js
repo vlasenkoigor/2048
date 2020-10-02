@@ -104,6 +104,9 @@ export class Game {
 
         this.setupNetworkEvents();
 
+
+        this.movePromise = Promise.resolve();
+
     }
 
 
@@ -195,6 +198,8 @@ export class Game {
         gameOver.x = this.width / 2;
         gameOver.y = this.height /2;
         this.gameOverPopup = gameOver;
+
+        this.startGame();
     }
 
     join(){
@@ -296,33 +301,42 @@ export class Game {
      * @param direction
      */
     move (direction){
-        if (!this.enabled) return;
+        // if (!this.enabled) return;
 
-        this.enabled = false;
-
-        const {data, promise} = this.grid.move(direction);
-        const {hasMove, stepScore, previousCellsIds, currentCellsIds} = data
-        this.score += stepScore;
-
-        let nextRandIndex, nextCellValue;
-        if (hasMove){
-            [nextRandIndex, nextCellValue] = Game.generateNextCell(null, this.grid);
-        }
-
-        this.socket.emit('move', {direction, hasMove, stepScore, previousCellsIds, currentCellsIds, score : this.score, nextRandIndex, nextCellValue});
-
-        promise
+        this.grid.skip();
+        console.log('move skip')
+        this.movePromise = this.movePromise
             .then(()=>{
-                this.enabled = true;
 
+                this.enabled = false;
+                const {data, promise} = this.grid.move(direction);
+                const {hasMove, stepScore, previousCellsIds, currentCellsIds} = data
+                this.score += stepScore;
+
+                let nextRandIndex, nextCellValue;
                 if (hasMove){
-                    this.grid.addCell(nextRandIndex, nextCellValue);
-                    this.scoreboard.setValue(this.score);
-                    if (!this.grid.hasAnyMove() && !this.isGameOver){
-                        this.gameOver();
-                    }
+                    [nextRandIndex, nextCellValue] = Game.generateNextCell(null, this.grid);
                 }
+
+                this.socket.emit('move', {direction, hasMove, stepScore, previousCellsIds, currentCellsIds, score : this.score, nextRandIndex, nextCellValue});
+                console.log('move ')
+                promise
+                    .then(()=>{
+                        console.log('move end')
+                        this.enabled = true;
+
+                        if (hasMove){
+                            this.grid.addCell(nextRandIndex, nextCellValue);
+                            this.scoreboard.setValue(this.score);
+                            if (!this.grid.hasAnyMove() && !this.isGameOver){
+                                this.gameOver();
+                            }
+                        }
+                    })
+
+                return promise;
             })
+
     }
 
 

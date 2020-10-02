@@ -159,8 +159,8 @@ class Game2048 {
             user_id,
             room_id,
             result_amount,
-            start_timestamp / 1000,
-            finish_timestamp / 1000,
+            Math.floor(start_timestamp / 1000),
+            Math.floor(finish_timestamp / 1000),
             data
         );
     }

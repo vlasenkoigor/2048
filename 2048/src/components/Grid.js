@@ -14,7 +14,7 @@ export class Grid extends Container{
         this._cellSize = cellSize;
         this._vGap = vGap;
         this._hGap = hGap;
-        this._time = 0.15;
+        this._time = 0.17;
 
         // grid bg creation
         this._bg = this._drawGridBackground();
@@ -48,6 +48,7 @@ export class Grid extends Container{
         const {_cells} = this;
         if (this._currentTimeLine){
             this._currentTimeLine.seek(this._currentTimeLine.endTime(), true);
+            this._currentTimeLine = null;
         }
 
         for (let i = 0, len = _cells.length; i < len; i++){
@@ -80,6 +81,12 @@ export class Grid extends Container{
         }
     }
 
+    skip(){
+        if (this._currentTimeLine){
+            this._currentTimeLine.seek(this._currentTimeLine.endTime(), false);
+            this._currentTimeLine = null;
+        }
+    }
 
 
     checkMove(direction = directions.RIGHT){

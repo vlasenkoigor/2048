@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js'
-import io from 'socket.io-client';
 import {Game} from "./Game";
 import {loadResources} from "./resourceLoader";
 import {loadFonts} from "./fontsLoader";
