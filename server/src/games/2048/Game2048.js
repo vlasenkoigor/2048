@@ -389,7 +389,7 @@ class Game2048 {
         if (player1.gameover && player2.gameover){
             this.onGameOver();
         } else {
-          this._sendOpponentGameOverMessage(score, isTimeOut)
+          this._sendOpponentGameOverMessage(socket, score, isTimeOut)
         }
 
     }
@@ -460,7 +460,7 @@ class Game2048 {
             .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score));
     }
 
-    _sendOpponentGameOverMessage(score, isTimeOut){
+    _sendOpponentGameOverMessage(socket, score, isTimeOut){
         socket.to(this._room_id).broadcast
             .emit(types.OPPONENT_GAME_OVER,
                 messages.opponent_game_over(score, isTimeOut))
