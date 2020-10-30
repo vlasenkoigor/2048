@@ -5,7 +5,7 @@ export function loadFonts() {
     return new Promise(resolve=>{
         WebFont.load({
             google: {
-                families: ['Barlow']
+                families: ['Fira Sans']
             },
             active : ()=>{
                 resolve();

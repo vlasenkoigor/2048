@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --mode=development",
+    "start": "webpack-dev-server --mode=development --host 0.0.0.0",
     "build": "webpack --mode=production"
   },
   "author": "",
@@ -13,12 +13,14 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
-    "webpack": "^4.39.3",
+    "webpack": "^4.44.2",
     "webpack-cli": "^3.3.7",
-    "webpack-dev-server": "^3.8.0"
+    "webpack-dev-server": "^3.8.0",
+    "worker-loader": "^3.0.3"
   },
   "dependencies": {
     "gsap": "^3.5.1",
+    "mobile-detect": "^1.4.4",
     "pixi.js": "^4.8.9",
     "socket.io-client": "^2.3.0",
     "webfontloader": "^1.6.28"

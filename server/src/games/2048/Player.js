@@ -27,6 +27,8 @@ class Player {
         this.gameover = false;
 
         this.data = {};
+
+        this.lastMoveData = {};
     }
 
     /**
@@ -80,6 +82,23 @@ class Player {
         this.gameover = true;
     }
 
+
+    /**
+     * set last move data
+     * @param data
+     */
+    setLastMoveData(data){
+        this.lastMoveData = data;
+    }
+
+
+    /**
+     * get last move data
+     * @return {{}}
+     */
+    getLastMoveData(){
+        return this.lastMoveData;
+    }
 
 }
 

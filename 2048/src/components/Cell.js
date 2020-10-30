@@ -15,14 +15,14 @@ const colors = [
 ];
 
 const blackStyle = {
-    "fontFamily" : "Barlow",
+    "fontFamily" : "Fira Sans",
     "fill": "#6e6e6e",
     "fontSize": 60,
     "fontWeight": "bolder"
 }
 
 const whiteStyle = {
-    "fontFamily" : "Barlow",
+    "fontFamily" : "Fira Sans",
     "fill": "#ffffff",
     "fontSize": 60,
     "fontWeight": "bolder"

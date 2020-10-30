@@ -1,5 +1,9 @@
 import {Container, Text, Graphics, ticker} from 'pixi.js';
 
+import Worker from '../serviceWorkers/ticker.worker.js';
+
+const tickerService = new Worker();
+
 export class Timer extends Container{
 
     constructor(layout) {
@@ -11,15 +15,16 @@ export class Timer extends Container{
 
         this.uuid = null;
 
-        const {x, y, hasTitle} = layout;
+        const {x, y}  = layout;
 
-        if (hasTitle){
-            const title = this._createTitleTf(layout.title);
-            title && this.addChild(title);
-        }
 
         this.tf = this._createCounterTf(layout.tf);
         this.tf && this.addChild(this.tf);
+
+        this.tf2 = this._createBankTf(layout.tf2);
+        this.tf2 && this.addChild(this.tf2);
+
+
 
         this.bars = this._createBars(layout.progress);
         this.bars.forEach(bar => this.addChild(bar))
@@ -42,14 +47,14 @@ export class Timer extends Container{
         const minutes = Math.floor(value / 60);
         const seconds = value % 60;
 
-        this.tf.text = `${minutes > 9 ? minutes : `0${minutes}`}:${seconds > 9 ? seconds:`0${seconds}`}`
+        this.tf.text = `TIME LIMIT: ${minutes > 9 ? minutes : `0${minutes}`}:${seconds > 9 ? seconds:`0${seconds}`}`
     }
 
     _createCounterTf(layout){
         const {x, y} = layout;
         const style = {
-            fontFamily : 'Barlow',
-            fontSize : 36,
+            fontFamily : 'Fira Sans',
+            fontSize : 24,
             fontWeight : 500,
             fill : "#3D3A33"
         }
@@ -65,16 +70,15 @@ export class Timer extends Container{
         return tf;
     }
 
-
-
-    _createTitleTf(layout){
+    _createBankTf(layout){
         const {x, y} = layout;
         const style = {
-            fontFamily : 'Barlow',
-            fontSize : 14,
-            fill : "#114D51"
+            fontFamily : 'Fira Sans',
+            fontSize : 24,
+            fontWeight : 500,
+            fill : "#00C443"
         }
-        const tf = new Text("TIME LIMIT", style);
+        const tf = new Text(`BANK: 1999`, style);
 
         tf.x = x;
         tf.y = y;
@@ -83,9 +87,9 @@ export class Timer extends Container{
             tf.anchor.set(layout.anchor.x, layout.anchor.y);
         }
 
-        // tf.cacheAsBitmap = false;
         return tf;
     }
+
 
     _createBars(layout){
         const {gap, width, height} = layout;
@@ -112,9 +116,19 @@ export class Timer extends Container{
 
 
     startCountDown(time, callback = ()=>{}){
+        this.stop();
+
         if (!time) time = this.timerValue;
         this.setTimerValue(time);
-        this.uuid = setInterval(this._onSecondTick.bind(this), 1000);
+
+        tickerService.postMessage('start');
+
+        tickerService.onmessage = e =>{
+            if (e.data === 'tick'){
+                this._onSecondTick();
+            }
+        }
+
         this.startTime = +new Date();
         this.lastTime = +new Date();
         this.finishTime = this.startTime + time * 1000;
@@ -122,22 +136,26 @@ export class Timer extends Container{
         ticker.shared.add(this._onTick, this);
     }
 
-    stop(){
-        ticker.shared.remove(this._onTick, this);
-        clearInterval(this.uuid)
-    }
-
     _onSecondTick(){
-        const t = +new Date();
-        console.log('tick', this.timerValue, t - this.lastTime);
-        this.lastTime = t;
+        // const t = +new Date();
+        // console.log('tick', this.timerValue, t - this.lastTime);
+        // this.lastTime = t;
+
         this.timerValue--
         this.setTimerValue(this.timerValue);
         if (this.timerValue <= 0) {
             this._completeCallback();
-            clearInterval(this.uuid)
+            tickerService.postMessage('stop');
         }
     }
+
+    stop(){
+        ticker.shared.remove(this._onTick, this);
+        this._onTick();
+        tickerService.postMessage('stop');
+    }
+
+
 
     _onTick(){
         const currentTime = +new Date(),
@@ -151,6 +169,9 @@ export class Timer extends Container{
         this.bars.forEach(bar => bar.setProgress(100 - progress))
     }
 
+    setBankValue(value){
+        this.tf2.text = `BANK: ${value}`
+    }
 
 }
 
@@ -159,9 +180,8 @@ class ProgressBar extends Container{
 
     constructor(config = {}, direction = 1) {
         super();
-
-
         this._config = config;
+
         const {
             width,
             height,

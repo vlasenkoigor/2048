@@ -60,7 +60,7 @@ export class PlayerInfo extends Container{
     _createUserNameTf(userName, layout){
         const {x, y} = layout;
         const style = {
-            fontFamily : 'Barlow',
+            fontFamily : 'Fira Sans',
             fontSize : 18,
             fill : "#3D3A33"
         }
@@ -81,7 +81,7 @@ export class PlayerInfo extends Container{
     _createCountryNameTf(name, layout){
         const {x, y} = layout;
         const style = {
-            fontFamily : 'Barlow',
+            fontFamily : 'Fira Sans',
             fontSize : 12,
             fill : "#9C9A90"
         }

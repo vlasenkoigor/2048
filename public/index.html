@@ -6,23 +6,30 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, width=device-width, height=device-height">
     <style>
         body{
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /*display: flex;*/
+            /*justify-content: flex-start;*/
+            /*align-items: start;*/
+            padding: 0;
+            margin: 0;
+
+
         }
 
         canvas{
-            object-fit: contain;
-            width: 100vw;
-            height: 90vh;
+            display: block;
+            margin: 0 auto;
+            /*object-fit: contain;*/
+            /*width: 100vw;*/
+            /*height: 100vh;*/
         }
     </style>
 </head>
 <body>
-<script>
-    javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+<!--<script>-->
+<!--    javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()-->
 
-</script>
+<!--</script>-->
+
     <script src="./js/main.js"></script>
 </body>
 </html>

@@ -2,46 +2,57 @@
   "cellSize" : 96,
   "vGap": 10,
   "hGap": 10,
-  "userGridLayout" : {"x":  57, "y" :  298},
+  "userGridLayout" : {"x":  30, "y" :  230, "scale" :  1.25},
   "scoreBoardPos" : {
-    "x": 47, "y" : 206,
-    "width": 106,
+    "x": 20, "y" : 130,
+    "width": 150,
     "height": 72,
-    "radius" : 8,
+    "radius" : 25,
     "value" : {
-      "x": 6,
-      "y": 30
+      "x": 75,
+      "y": 33,
+      "fontSize" : 22,
+      "anchor" : {
+        "x": 0.5,
+        "y" : 0
+      }
     },
     "title" : {
-      "x": 6,
-      "y": 7
+      "x": 75,
+      "y": 7,
+      "fontSize" : 22,
+      "anchor" : {
+        "x": 0.5,
+        "y" : 0
+      }
     }
   },
 
-  "opponentGridLayout" : {"x":  567, "y" :  298},
-  "OpponentScoreBoardPos" : {
-    "x": 882, "y" : 206,
-    "width": 106,
-    "height": 72,
+  "opponentGridLayout" : {"x":  335, "y" :  795, "scale" :  0.5},
+  "OpponentScoreBoardPos" : {"x": 70, "y" : 900,
+    "width": 200,
+    "height": 40,
     "radius" : 8,
+    "singleLine": true,
     "value" : {
-      "x": 6,
-      "y": 30
-    },
-    "title" : {
-      "x": 6,
-      "y": 7
+      "x": 7,
+      "y": 20,
+      "fontSize" : 20,
+      "anchor" : {
+        "x": 0,
+        "y" : 0.5
+      }
     }
   },
   "topBarLayout" : {
     "x" : 0,
     "y" : 0,
-    "width" : 1038,
-    "height" : 106
+    "width" : 576,
+    "height" : 60
   },
   "playerInfoLayout" : {
-    "x" : 166,
-    "y" : 218,
+    "x" : 190,
+    "y" : 140,
 
     "avatar": {
       "x" : 0,
@@ -67,36 +78,29 @@
 
 
   "opponentInfoLayout" : {
-    "x" : 651,
-    "y" : 218,
+    "x" : 30,
+    "y" : 795,
+
 
     "avatar": {
-      "x" : 165,
+      "x" : 0,
       "y" : 0,
       "width" : 48,
       "height" : 48
     },
     "flag" : {
-      "x" : 143,
+      "x" : 55,
       "y" : 32,
       "width" : 15,
       "height" : 10
     },
     "countryName" : {
-      "x" : 138,
-      "y" : 30,
-      "anchor" : {
-        "x": 1,
-        "y" : 0
-      }
+      "x" : 75,
+      "y" : 30
     },
     "userName" : {
-      "x" : 160,
-      "y" : 5,
-      "anchor" : {
-        "x": 1,
-        "y" : 0
-      }
+      "x" : 55,
+      "y" : 5
     }
   },
   "vsLabelLayout" : {
@@ -108,11 +112,11 @@
     }
   },
   "timerLayout" : {
-    "x" : 519,
-    "y" : 100,
+    "x" : 288,
+    "y" : 40,
 
     "tf" : {
-      "x" : 465,
+      "x" : 250,
       "y" : 30,
       "anchor" : {
         "x": 1,
@@ -120,7 +124,7 @@
       }
     },
     "tf2" : {
-      "x" : -465,
+      "x" : -250,
       "y" : 30,
       "anchor" : {
         "x": 0,
@@ -131,65 +135,61 @@
     "progress" : {
       "x" : 0,
       "y" : 70,
-      "width" : 465,
-      "height" : 4,
+      "width" : 280,
+      "height" : 5,
       "radius" : 20,
-      "gap" : 10
+      "gap" : 7
     }
   },
   "logoLayout" :{
-    "x" : 40,
-    "y" : 17,
+    "x" : 180,
+    "y" : 30,
 
     "text1": {
       "x" : 0,
       "y" : 0,
+      "size" : 40,
       "anchor" : {
         "x" : 0,
-        "y" : 0
+        "y" : 0.5
       }
     },
     "text2": {
-      "x" : 150,
-      "y" : 40,
+      "x" : 100,
+      "y" : 0,
+      "size" : 15,
       "anchor" : {
         "x" : 0,
-        "y" : 0
+        "y" : 0.5
       }
     }
   },
 
 
   "surrenderLayout" : {
-    "x" : 728,
-    "y" : 32,
-    "width" : 270,
+    "x" : 10,
+    "y" : 10,
+    "width" : 40,
     "height" : 40,
-    "radius": 6,
+    "radius": 10,
     "anchor" : {
       "x": 0,
       "y" : 0
     },
     "icon" : {
-      "x" : 15,
+      "x" : 20,
       "y" : 20,
+      "size" : 28,
       "anchor": {
         "x" : 0.5,
-        "y" : 0.5
-      }
-    },
-    "text" : {
-      "x" : 30,
-      "y" : 20,
-      "anchor": {
-        "x" : 0,
         "y" : 0.5
       }
     }
   },
   "onlineLayout" : {
-    "x" : 564,
-    "y" : 740
+    "x" : 100,
+    "y" : 880,
+    "fontSize" : 17
   },
 
   "infoTextLayout" : {
@@ -203,64 +203,73 @@
 
 
   "gameOverPopupLayout" : {
-    "x" : 93,
-    "y" : 445,
-    "width" : 325,
-    "height" : 120,
+    "x" : 25,
+    "y" : 385,
+    "width" : 528,
+    "height" : 210,
     "radius"  : 6,
     "text1" : {
-      "x" : 162,
-      "y": 20,
-      "fontSize" : 14,
-      "anchor" : {
-        "x": 0.5,
-        "y": 0
-      }
-    },
-    "text2" : {
-      "x" : 162,
-      "y": 45,
+      "x" : 264,
+      "y": 65,
       "fontSize" : 22,
       "anchor" : {
         "x": 0.5,
-        "y": 0
+        "y": 0.5
+      }
+    },
+    "text2" : {
+      "x" : 264,
+      "y": 105,
+      "fontSize" : 28,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
       }
     },
     "text3" : {
-      "x" : 162,
-      "y": 77,
-      "fontSize" : 14,
+      "x" : 264,
+      "y": 145,
+      "fontSize" : 22,
       "anchor" : {
         "x": 0.5,
-        "y": 0
+        "y": 0.5
       }
     }
   },
 
   "opponentGameOverPopupLayout" : {
-    "x" : 613,
-    "y" : 445,
-    "width" : 325,
-    "height" : 120,
+    "x" : 25,
+    "y" : 785,
+    "alpha" : 0.96,
+    "width" : 533,
+    "height" : 216,
     "radius"  : 6,
     "text1" : {
-      "x" : 162,
-      "y": 35,
-      "fontSize" : 14,
-      "anchor" : {
-        "x": 0.5,
-        "y": 0
-      }
-    },
-    "text2" : {
-      "x" : 162,
-      "y": 60,
+      "x" : 266.5,
+      "y": 65,
       "fontSize" : 22,
       "anchor" : {
         "x": 0.5,
-        "y": 0
+        "y": 0.5
+      }
+    },
+    "text2" : {
+      "x" : 266.5,
+      "y": 108,
+      "fontSize" : 28,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
       }
     }
-  }
+  },
 
+  "opponentGridBgLayout" : {
+    "x" : 17,
+    "y" : 778,
+    "alpha" : 0.05,
+    "width" : 543,
+    "height" : 240,
+    "radius"  : 6
+    }
 }

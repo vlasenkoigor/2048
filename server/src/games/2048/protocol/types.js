@@ -7,6 +7,7 @@ module.exports = {
     OPPONENT_DISCONNECTED : 'opponent_disconnected',
     START_GAME : 'start_game',
     MATCH_RESULT : 'match_result',
+    OPPONENT_GAME_OVER : 'opponent_game_over',
     NOTIFICATION : 'notification',
 
     // client -> server

@@ -9,8 +9,8 @@ export class Logo extends Container{
 
         const tf1 = new Text('2048',
             {
-            fontFamily : 'Barlow',
-            fontSize : 64,
+            fontFamily : 'Fira Sans',
+            fontSize : text1.size || 67,
             fontWeight : 'bold',
             fill : "#3D3A33"
         })
@@ -21,8 +21,8 @@ export class Logo extends Container{
 
         const tf2 = new Text('MINDPLAYS EDITION',
             {
-                fontFamily : 'Barlow',
-                fontSize : 15,
+                fontFamily : 'Fira Sans',
+                fontSize : text2.size || 17,
                 fontWeight : 'bold',
                 fill : "#3D3A33"
             })

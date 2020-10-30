@@ -6,7 +6,7 @@ module.exports = (env, argv)=>{
         entry: { main: './src/index.js'},
         output: {
             path: path.join(__dirname, '../public', 'js'),
-            filename: 'main.js'
+            filename: '[name].js',
         },
         module: {
             rules: [
@@ -16,7 +16,16 @@ module.exports = (env, argv)=>{
                     use: {
                         loader: "babel-loader"
                     }
-                }
+                },
+                {
+                    exclude: /node_modules/,
+                    test: /\.worker\.js$/,
+                    loader: 'worker-loader',
+                    options : {
+                        inline : 'no-fallback',
+                        publicPath: path.join(__dirname, '..'),
+                    }
+                },
             ]
         },
 

@@ -1,4 +1,4 @@
-import {Container, Sprite, Graphics, Point, Texture} from 'pixi.js';
+import {Container,  Graphics, Point } from 'pixi.js';
 import { gsap } from "gsap";
 import { Cell } from './Cell';
 import directions, {isHorizontalMove, isReversedMove} from '../directions';

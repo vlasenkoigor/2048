@@ -32,7 +32,8 @@ export function setupNetworkEvents(game, socket){
         // info about the required rooms (if its not as simple as my
         // example) could easily be reached via a DB connection. It worth it.
 
-        console.log('connect')
+        game.join();
+        console.log('connect');
 
     });
 
@@ -91,6 +92,11 @@ export function setupNetworkEvents(game, socket){
     socket.on('move', (data)=>{
         game.moveOpponent(data)
     });
+
+    socket.on('opponent_game_over', (data)=>{
+        console.log('opponent_game_over', data)
+        game.showOpponentPopup(data.score);
+    })
 
     socket.on('match_result', (data)=>{
         console.log('match_result', data)

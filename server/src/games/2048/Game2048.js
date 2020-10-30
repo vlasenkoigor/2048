@@ -42,6 +42,9 @@ class Game2048 {
          * @private
          */
         this._loser = null;
+
+
+        this.timeoutUUID = null;
     }
 
     /**
@@ -50,14 +53,12 @@ class Game2048 {
      * @param user_id
      */
     async registerUser(socket, user_id) {
-
-
         // reject if game already started
-        if (this.gameStarted){
-            socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 2));
-            // console.log(messages.rejected(this._room_id, user_id, 2));
-            return;
-        }
+        // if (this.gameStarted){
+        //     socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 2));
+        //     // console.log(messages.rejected(this._room_id, user_id, 2));
+        //     return;
+        // }
 
         // reject if game reached players limit
         if (this._players.length === rules.players_limit && !this._findPlayer(user_id)) {
@@ -82,8 +83,9 @@ class Game2048 {
 
 
         this._printUsers();
+
         // if we have all players in the game - start the game
-        if (this._getActivePlayers().length === rules.players_limit) this.startGame();
+        if (!this.gameStarted && this._getActivePlayers().length === rules.players_limit) this.startGame();
     }
 
     /**
@@ -122,28 +124,63 @@ class Game2048 {
         }
 
         socket.join(room_id);
-        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), {time : rules.time}));
 
+        this.emitJoined(player, room_id, reconnected);
+
+        this.broadCastJoined(player, room_id, reconnected);
+
+        this._setupGameListeners(socket);
+    }
+
+    emitJoined(player, room_id, reconnected){
+        const user_id = player.id;
+        const socket = player.socket;
+
+        let data = {
+            time : rules.time,
+            gameStarted : this.gameStarted,
+            gameCompleted : this.gameCompleted
+        }
+
+        if (this.gameStarted){
+            data = {...data, ...this._restorePlayerState(player)}
+        }
+
+        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), data));
+    }
+
+
+    /**
+     * brad cast to all player joined
+     * @param player
+     * @param room_id
+     * @param reconnected
+     */
+    broadCastJoined(player, room_id, reconnected){
+        const user_id = player.id;
+        const socket = player.socket;
         socket
             .to(this._room_id).broadcast
             .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo()));
-
-        // subscribe to the disconnect event
-        socket.on(types.DISCONNECT, ()=>{
-            this._onDisconnect(socket);
-        });
-
-        this._setupGameListeners(socket);
-
     }
 
-    _getPlayerData(user_id){
-        const wait = ()=>{
-            return new Promise((resolve)=>{
-
-            })
+    /**
+     *
+     * @param player {Player}
+     * @return {{lastMoveData: *, secondsElapsed: number}}
+     * @private
+     */
+    _restorePlayerState(player){
+        return  {
+            secondsElapsed : Math.floor( ((+new Date()) - this._startedAt ) / 1000) ,
+            lastMoveData : player.getLastMoveData(),
+            opponentLastMove : this._players.find(p => p !== player).getLastMoveData()
         }
-       return provider.get_info(user_id, this._room_id);
+    }
+
+
+    _getPlayerData(user_id){
+        return provider.get_info(user_id, this._room_id);
     }
 
 
@@ -231,9 +268,6 @@ class Game2048 {
         const player = this._players.find(p => p.getSocketId() === socket.id);
 
         if (player){
-            if (this.gameStarted && !this.gameCompleted){
-                player.completeGame();
-            }
             // deactivate user and send broadcast notification
             player.deactivate();
             socket
@@ -265,8 +299,24 @@ class Game2048 {
         this.gameStarted = true;
         this._startedAt = +new Date();
 
-        io.to(this._room_id).emit(types.START_GAME)
+        io.to(this._room_id).emit(types.START_GAME);
+
+        // this.setTimeout();
     }
+
+    // setTimeout(){
+    //     this.timeoutUUID = setTimeout(()=>{
+    //         this.onGameTimeOut();
+    //     }, rules.time * 1000)
+    // }
+
+    stopTimeout(){
+        if (this.timeoutUUID){
+            clearTimeout(this.timeoutUUID);
+            this.timeoutUUID = null;
+        }
+    }
+
 
     /**
      * set up listeners for socket
@@ -285,7 +335,13 @@ class Game2048 {
         socket.on(types.MOVE, data => {this._onPlayerMoved(socket, data)});
 
         // on game over. once timer implemented it will be removed
-        socket.on(types.GAME_OVER, data => {this._onGameOver(socket, data)});
+        socket.on(types.GAME_OVER, data => {this._onPlayerGameOver(socket, data)});
+
+        // subscribe to the disconnect event
+        socket.on(types.DISCONNECT, ()=>{
+            this._onDisconnect(socket);
+        });
+
     }
 
     /**
@@ -303,6 +359,7 @@ class Game2048 {
 
         if (player){
             player.score = score;
+            player.setLastMoveData(data);
         }
 
         socket.to(this._room_id).broadcast
@@ -316,11 +373,11 @@ class Game2048 {
      * @param data
      * @private
      */
-    _onGameOver(socket, data){
+    _onPlayerGameOver(socket, data){
         if (this.gameCompleted) return;
 
         const player = this._players.find(p => p.getSocketId() === socket.id);
-        const {score} = data;
+        const {score, isTimeOut} = data;
 
         player.score = score;
         player.completeGame();
@@ -330,42 +387,64 @@ class Game2048 {
 
         // if both players completed to play
         if (player1.gameover && player2.gameover){
-            this.gameCompleted = true;
-            this._finishedAt = +new Date();
-
-            // define result
-            this._defineResult();
-
-            // send messages depends on result
-            if (this._result === 'drawn'){
-                this._sendDrawnMessage();
-            } else {
-                this._sendWinnerMessage();
-                this._sendLoserMessage();
-            }
-
-            // save results
-            io.emit(types.NOTIFICATION, messages.notification('Saving results...'))
-            Promise.all([
-                this._saveUserResult(player1, player2),
-                this._saveUserResult(player2, player1)
-            ])
-                .then((response)=>{
-                    console.log('result saved', response)
-                    io.emit(types.NOTIFICATION, messages.notification('Result saved'))
-
-                })
-                .catch(e=>{
-                    console.log(e)
-                    const {status, statusText} = e;
-                    const message = e.data && e.error ? e.data.error.message : e.data ? e.data.message : 'unknown error';
-
-                    const err_message = `Error : ${status} - ${statusText}; message : ${message}`;
-                    io.emit(types.REQUEST_FAILS, messages.notification(err_message))
-                    console.log(err_message);
-                })
+            this.onGameOver();
+        } else {
+          this._sendOpponentGameOverMessage(score, isTimeOut)
         }
+
     }
+
+    onGameOver(){
+        if (this.gameCompleted) return;
+
+        const player1 = this._players[0];
+        const player2 = this._players[1];
+
+        this.gameCompleted = true;
+        this._finishedAt = +new Date();
+
+        this.stopTimeout();
+
+        // define result
+        this._defineResult();
+
+        // send messages depends on result
+        if (this._result === 'drawn'){
+            this._sendDrawnMessage();
+        } else {
+            this._sendWinnerMessage();
+            this._sendLoserMessage();
+        }
+
+        // save results
+        io.emit(types.NOTIFICATION, messages.notification('Saving results...'))
+        Promise.all([
+            this._saveUserResult(player1, player2),
+            this._saveUserResult(player2, player1)
+        ])
+            .then((response)=>{
+                console.log('result saved', response)
+                io.emit(types.NOTIFICATION, messages.notification('Result saved'))
+
+            })
+            .catch(e=>{
+                console.log(e)
+                const {status, statusText} = e;
+                const message = e.data && e.data.error ? e.data.error.message : e.data ? e.data.message : 'unknown error';
+
+                const err_message = `Error : ${status} - ${statusText}; message : ${message}`;
+                io.emit(types.REQUEST_FAILS, messages.notification(err_message))
+                console.log(err_message);
+
+            })
+    }
+
+
+    // onGameTimeOut(){
+    //     console.log('timeout');
+    //     this._players.forEach(player => player.completeGame())
+    //     this.onGameOver();
+    // }
 
     /**
      * send message that game is drawn
@@ -380,6 +459,13 @@ class Game2048 {
         player2.socket && player2.socket
             .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score));
     }
+
+    _sendOpponentGameOverMessage(score, isTimeOut){
+        socket.to(this._room_id).broadcast
+            .emit(types.OPPONENT_GAME_OVER,
+                messages.opponent_game_over(score, isTimeOut))
+    }
+
 
     /**
      * send message to the winner
