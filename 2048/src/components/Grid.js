@@ -39,12 +39,12 @@ export class Grid extends Container{
     }
 
 
-    moveDemo(direction, previousCellsIds){
-        this._syncCellsState(previousCellsIds);
+    moveDemo(direction, cellsBefore){
+        this._syncCellsState(cellsBefore);
         return this.move(direction);
     }
 
-    _syncCellsState(previousCellsIds){
+    _syncCellsState(cellsIndexes){
         const {_cells} = this;
         if (this._currentTimeLine){
             this._currentTimeLine.seek(this._currentTimeLine.endTime(), true);
@@ -52,13 +52,13 @@ export class Grid extends Container{
         }
 
         for (let i = 0, len = _cells.length; i < len; i++){
-            if (previousCellsIds[i] === null && _cells[i]){
+            if (cellsIndexes[i] === null && _cells[i]){
                 _cells[i].destroy();
                 _cells[i] == null;
-            } else if (previousCellsIds[i] !== null && _cells[i] === null){
-                this.addCell(i, previousCellsIds[i]);
-            } else if (previousCellsIds[i] !== null && _cells[i].value !== previousCellsIds[i]){
-                _cells[i].setValue(previousCellsIds[i])
+            } else if (cellsIndexes[i] !== null && _cells[i] === null){
+                this.addCell(i, cellsIndexes[i]);
+            } else if (cellsIndexes[i] !== null && _cells[i].value !== cellsIndexes[i]){
+                _cells[i].setValue(cellsIndexes[i])
             }
         }
     }
@@ -68,7 +68,7 @@ export class Grid extends Container{
      */
     move(direction){
         const
-            {hasMove, stepScore, previousCellsIds, currentCellsIds, linesAfterMerges, linesAfter, isHorzlMove, newCells}
+            {hasMove, stepScore, cellsBefore, cellsAfter, linesAfterMerges, linesAfter, isHorzlMove, newCells}
                 = this.checkMove(direction);
 
         this._cells = newCells;
@@ -77,7 +77,7 @@ export class Grid extends Container{
 
         return {
             promise,
-            data :  {hasMove, stepScore, previousCellsIds, currentCellsIds}
+            data :  {hasMove, stepScore, cellsBefore, cellsAfter}
         }
     }
 
@@ -96,7 +96,7 @@ export class Grid extends Container{
         // get lined before movement
         const linesBefore = isHorzlMove ? this._getHorizontalLines() : this._getVerticalLines();
 
-        const previousCellsIds = this._cells.map(cell => cell ? cell.value : null);
+        const cellsBefore = this._cells.map(cell => cell ? cell.value : null);
 
         // find matches (merges per line)
         const [linesAfterMerges, stepScore] = this._findMerges(linesBefore, isReversed)
@@ -120,9 +120,9 @@ export class Grid extends Container{
 
         const hasMove = !arrayEquals(newCells, prevCells);
 
-        const currentCellsIds = newCells.map(cell => cell ? cell.value : null);
+        const cellsAfter = newCells.map(cell => cell ? cell.value : null);
 
-        return {hasMove, stepScore, previousCellsIds, currentCellsIds, linesAfterMerges, linesAfter, isHorzlMove, newCells};
+        return {hasMove, stepScore, cellsBefore, cellsAfter, linesAfterMerges, linesAfter, isHorzlMove, newCells};
     }
 
     hasAnyMove() {
@@ -367,5 +367,9 @@ export class Grid extends Container{
     _getVerticalPositionInTheColumn(indexInTheColumn){
         const {_cellSize, _vGap} = this;
         return indexInTheColumn * (_cellSize + _vGap)
+    }
+
+    toIndexes(){
+        return this._cells.map(cell => cell ? cell.value : null);
     }
 }

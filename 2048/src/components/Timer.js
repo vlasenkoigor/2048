@@ -36,17 +36,26 @@ export class Timer extends Container{
 
         this.finishTime = null;
 
-        this.setTimerValue(this.timerValue);
+        this.setTimerValue();
 
         this._completeCallback = ()=>{}
 
+        this.stopped = false;
+    }
+
+    setup(value, elapsedTime = 0){
+        this.totalSeconts = value;
+        this.elapsedSeconds = elapsedTime;
+        const currentTime = value - elapsedTime;
+        this.timerValue = currentTime < 0 ? 0 : currentTime;
+
+        this.setTimerValue();
     }
 
     setTimerValue(value){
-        this.timerValue = value < 0 ? 0 : value;
+        value = value !== undefined ? value : this.timerValue;
         const minutes = Math.floor(value / 60);
         const seconds = value % 60;
-
         this.tf.text = `TIME LIMIT: ${minutes > 9 ? minutes : `0${minutes}`}:${seconds > 9 ? seconds:`0${seconds}`}`
     }
 
@@ -78,7 +87,7 @@ export class Timer extends Container{
             fontWeight : 500,
             fill : "#00C443"
         }
-        const tf = new Text(`BANK: 1999`, style);
+        const tf = new Text(`BANK: `, style);
 
         tf.x = x;
         tf.y = y;
@@ -115,11 +124,11 @@ export class Timer extends Container{
     }
 
 
-    startCountDown(time, callback = ()=>{}){
+    startCountDown(callback = ()=>{}){
         this.stop();
 
-        if (!time) time = this.timerValue;
-        this.setTimerValue(time);
+        const time = this.timerValue;
+        this.setTimerValue();
 
         tickerService.postMessage('start');
 
@@ -129,37 +138,18 @@ export class Timer extends Container{
             }
         }
 
-        this.startTime = +new Date();
-        this.lastTime = +new Date();
-        this.finishTime = this.startTime + time * 1000;
+        this.stopped = false;
+        const currentTime = +new Date();
+        this.startTime = currentTime - (this.elapsedSeconds * 1000);
+        this.lastTime = currentTime;
+        this.finishTime = currentTime + time * 1000;
         this._completeCallback = callback;
         ticker.shared.add(this._onTick, this);
     }
 
-    _onSecondTick(){
-        // const t = +new Date();
-        // console.log('tick', this.timerValue, t - this.lastTime);
-        // this.lastTime = t;
-
-        this.timerValue--
-        this.setTimerValue(this.timerValue);
-        if (this.timerValue <= 0) {
-            this._completeCallback();
-            tickerService.postMessage('stop');
-        }
-    }
-
-    stop(){
-        ticker.shared.remove(this._onTick, this);
-        this._onTick();
-        tickerService.postMessage('stop');
-    }
-
-
-
     _onTick(){
         const currentTime = +new Date(),
-            totalTime = this.finishTime - this.startTime,
+            totalTime = this.totalSeconts * 1000,
             progressTime = currentTime - this.startTime,
             progress = progressTime * 100 / totalTime;
 
@@ -168,6 +158,33 @@ export class Timer extends Container{
         }
         this.bars.forEach(bar => bar.setProgress(100 - progress))
     }
+
+
+
+    _onSecondTick(){
+        this.timerValue--
+        this.setTimerValue();
+        if (this.timerValue <= 0) {
+            this._completeCallback();
+            tickerService.postMessage('stop');
+        }
+    }
+
+    stop(time){
+        if (this.stopped) return;
+        this.stopped = false;
+
+        ticker.shared.remove(this._onTick, this);
+        this._onTick();
+        tickerService.postMessage('stop');
+
+        if (time !== undefined){
+            this.setTimerValue(time);
+        }
+    }
+
+
+
 
     setBankValue(value){
         this.tf2.text = `BANK: ${value}`

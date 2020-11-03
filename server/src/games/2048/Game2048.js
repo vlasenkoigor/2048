@@ -43,8 +43,11 @@ class Game2048 {
          */
         this._loser = null;
 
+        this.timeup = false;
 
         this.timeoutUUID = null;
+
+        this.currentTimeCountdown = rules.time;
     }
 
     /**
@@ -53,17 +56,12 @@ class Game2048 {
      * @param user_id
      */
     async registerUser(socket, user_id) {
-        // reject if game already started
-        // if (this.gameStarted){
-        //     socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 2));
-        //     // console.log(messages.rejected(this._room_id, user_id, 2));
-        //     return;
-        // }
+
 
         // reject if game reached players limit
         if (this._players.length === rules.players_limit && !this._findPlayer(user_id)) {
-            socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 1));
-            // console.log(messages.rejected(this._room_id, user_id, 1));
+            socket.emit(types.ERROR, messages.error(2, 'Out of maximum players count'));
+            console.log(`Socket ${socket.id} Maximum players amount`);
             return;
         }
 
@@ -73,16 +71,17 @@ class Game2048 {
         // is player already connected
         // we reject socket
         if (player && player.active){
-            // already connected
-            socket.emit(types.REJECTED, messages.rejected(this._room_id, user_id, 3));
-            // console.log(messages.rejected(this._room_id, user_id, 3, this._getUsersListInfo()));
-            return;
+
+            if (player.socket){
+                console.log(`Socket ${socket.id} disconnected by conflict, user ${player.id} `);
+                player.socket.removeAllListeners();
+                player.socket.emit(types.ERROR, messages.error(1, '2 players conflict'));
+                player.socket.disconnect();
+                player.socket = null;
+            }
         }
 
         await this._onUserJoined(socket, user_id, player);
-
-
-        this._printUsers();
 
         // if we have all players in the game - start the game
         if (!this.gameStarted && this._getActivePlayers().length === rules.players_limit) this.startGame();
@@ -102,42 +101,58 @@ class Game2048 {
 
         if (!player) player = new Player(user_id, socket);
 
-        socket.emit(types.NOTIFICATION, messages.notification('Getting user information...'))
-        console.log('Getting user information .....')
-        let data = null;
-        try {
-            data = await this._getPlayerData(user_id);
-        } catch (e) {
-            const err_message = e ? `Error : ${e.status} - ${e.statusText}; message : ${e.data ? e.data.error.message : ''}` : 'unknown error';
-            socket.emit(types.REQUEST_FAILS, messages.notification(err_message))
-            console.log(err_message);
-        }
-
-        const user_data = data && data.status === 200 ? data.data : null;
-        if (!user_data && !ignoreFails) return;
-
-        player.data = user_data;
         if (reconnected){
             player.activate(socket);
         } else {
             this._players.push(player);
         }
 
-        socket.join(room_id);
-
-        this.emitJoined(player, room_id, reconnected);
-
-        this.broadCastJoined(player, room_id, reconnected);
-
         this._setupGameListeners(socket);
+
+        socket.emit(types.NOTIFICATION, messages.notification('Getting user information...'))
+
+        let data = null;
+        let err_message = ''
+        try {
+            data = await this._getPlayerData(user_id);
+        } catch (e) {
+            err_message = e ? `Error : ${e.status} - ${e.statusText}; message : ${e.data ? e.data.error.message : ''}` : 'unknown error';
+            socket.emit(types.REQUEST_FAILS, messages.notification(err_message))
+
+            // console.log(err_message);
+        }
+
+        const user_data = data && data.status === 200 ? data.data : null;
+        if (!user_data && !ignoreFails){
+            socket.emit(types.ERROR, messages.error(5, err_message))
+            return
+        }
+
+        player.data = user_data;
+
+        if (player.active){
+            socket.join(room_id);
+            this.emitJoined(player, room_id, reconnected);
+            this.broadCastJoined(player, room_id, reconnected);
+
+            console.log(`Player ${player.id} connected`)
+            this._printUsers();
+        }
+
+
     }
 
     emitJoined(player, room_id, reconnected){
         const user_id = player.id;
         const socket = player.socket;
 
+
+        const elapsedTime = this.getElapsedSeconds();
+
         let data = {
-            time : rules.time,
+            totalTime : rules.time,
+            stopCell : rules.stopCell,
+            elapsedTime : this.gameStarted ?  elapsedTime : 0,
             gameStarted : this.gameStarted,
             gameCompleted : this.gameCompleted
         }
@@ -147,6 +162,20 @@ class Game2048 {
         }
 
         socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), data));
+    }
+
+    getElapsedSeconds(){
+
+        let elapsedTime = 0;
+        if (this.gameCompleted){
+            elapsedTime = !this.timeup  ? Math.floor( (this._finishedAt - this._startedAt ) / 1000 ) : 0
+        } else {
+            elapsedTime = Math.floor( ((+new Date()) - this._startedAt ) / 1000)
+        }
+
+        if (elapsedTime > rules.time)  elapsedTime = rules.time;
+
+        return elapsedTime;
     }
 
 
@@ -167,14 +196,13 @@ class Game2048 {
     /**
      *
      * @param player {Player}
-     * @return {{lastMoveData: *, secondsElapsed: number}}
      * @private
      */
     _restorePlayerState(player){
+        const opponent =  this._players.find(p => p !== player)
         return  {
-            secondsElapsed : Math.floor( ((+new Date()) - this._startedAt ) / 1000) ,
-            lastMoveData : player.getLastMoveData(),
-            opponentLastMove : this._players.find(p => p !== player).getLastMoveData()
+            snapshot : player.snapshot,
+            opponentSnapshot : opponent.snapshot
         }
     }
 
@@ -276,7 +304,8 @@ class Game2048 {
 
         }
 
-        console.log(messages.disconnected(player.id, this._room_id, this._getUsersListInfo()));
+        // console.log(messages.disconnected(player.id, this._room_id));
+        console.log(`Player ${player.id} disconected`);
         this._printUsers();
     }
 
@@ -298,17 +327,42 @@ class Game2048 {
 
         this.gameStarted = true;
         this._startedAt = +new Date();
+        this._players.forEach( p => p.timeLeft = rules.time );
 
         io.to(this._room_id).emit(types.START_GAME);
 
-        // this.setTimeout();
+
+        this.runTicker();
+
     }
 
-    // setTimeout(){
-    //     this.timeoutUUID = setTimeout(()=>{
-    //         this.onGameTimeOut();
-    //     }, rules.time * 1000)
-    // }
+
+    runTicker(){
+        setInterval(()=>{
+            this.onTick();
+        }, 1000);
+    }
+
+    onTick(){
+        const data =  {
+            time : --this.currentTimeCountdown
+        }
+
+        io.to(this._room_id)
+            .emit(
+                types.TICK,
+                data
+            );
+    }
+
+
+    setTimeout(){
+        this.timeoutUUID = setTimeout(()=>{
+            this.timeup = true;
+
+            console.log('times up')
+        }, rules.time * 1000)
+    }
 
     stopTimeout(){
         if (this.timeoutUUID){
@@ -327,6 +381,11 @@ class Game2048 {
         // when we got initial cells from socket we need
         // broad cast them to all players
         socket.on(types.INITIAL_CELLS, (data)=>{
+            const player = this._players.find(p => p.getSocketId() === socket.id);
+            if (player){
+                player.snapshot = data;
+            }
+
             socket.to(this._room_id).broadcast
                 .emit(types.INITIAL_CELLS, data);
         });
@@ -353,17 +412,27 @@ class Game2048 {
     _onPlayerMoved(socket, data) {
         if (this.gameCompleted) return;
 
-        const {score} = data;
+        const {score} = data.snapshot;
 
         const player = this._players.find(p => p.getSocketId() === socket.id);
 
         if (player){
             player.score = score;
-            player.setLastMoveData(data);
+            player.moveData = data.moveData;
+            player.snapshot = data.snapshot;
+        }
+
+        if (data.snapshot && data.snapshot.board){
+            player.collectedStopper = data.snapshot.board.some( i => i === rules.stopCell )
         }
 
         socket.to(this._room_id).broadcast
-            .emit(types.MOVE, data);
+            .emit(types.MOVE, {...data, collectedStopper : player.collectedStopper});
+
+        if (player.collectedStopper){
+            this._players.forEach(p => p.completeGame())
+            this.onGameOver()
+        }
     }
 
     /**
@@ -377,7 +446,7 @@ class Game2048 {
         if (this.gameCompleted) return;
 
         const player = this._players.find(p => p.getSocketId() === socket.id);
-        const {score, isTimeOut} = data;
+        const {score} = data;
 
         player.score = score;
         player.completeGame();
@@ -389,7 +458,7 @@ class Game2048 {
         if (player1.gameover && player2.gameover){
             this.onGameOver();
         } else {
-          this._sendOpponentGameOverMessage(socket, score, isTimeOut)
+          this._sendOpponentGameOverMessage(socket, score)
         }
 
     }
@@ -399,9 +468,13 @@ class Game2048 {
 
         const player1 = this._players[0];
         const player2 = this._players[1];
+        this._finishedAt = +new Date();
+
+
+        this._sendTimeSync(rules.time - this.getElapsedSeconds());
 
         this.gameCompleted = true;
-        this._finishedAt = +new Date();
+
 
         this.stopTimeout();
 
@@ -434,11 +507,17 @@ class Game2048 {
 
                 const err_message = `Error : ${status} - ${statusText}; message : ${message}`;
                 io.emit(types.REQUEST_FAILS, messages.notification(err_message))
+                if (!ignoreFails){
+                    io.emit(types.ERROR, messages.error(5, err_message))
+                }
                 console.log(err_message);
 
             })
     }
 
+    _sendTimeSync(time){
+        io.to(this._room_id).emit(types.TIME_SYNC, {time});
+    }
 
     // onGameTimeOut(){
     //     console.log('timeout');
@@ -460,10 +539,10 @@ class Game2048 {
             .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score));
     }
 
-    _sendOpponentGameOverMessage(socket, score, isTimeOut){
+    _sendOpponentGameOverMessage(socket, score){
         socket.to(this._room_id).broadcast
             .emit(types.OPPONENT_GAME_OVER,
-                messages.opponent_game_over(score, isTimeOut))
+                messages.opponent_game_over(score))
     }
 
 
@@ -494,7 +573,7 @@ class Game2048 {
         const player2 = this._players[1];
 
         // if we have drawn
-        if (player1.score === player2.score){
+        if (player1.score === player2.score || (player1.collectedStopper && player2.collectedStopper)){
             console.log(`Game #${this._room_id} result = DRAWN`)
             this._result = 'drawn';
             this._winner = null;
@@ -502,10 +581,10 @@ class Game2048 {
 
             // define the winner
             this._result = 'winner';
-            if (player1.score > player2.score){
+            if (player1.collectedStopper || player1.score > player2.score){
                 this._winner = player1;
                 this._loser = player2;
-            } else {
+            } else if (player2.collectedStopper || player2.score > player1.score){
                 this._winner = player2;
                 this._loser = player1;
             }
@@ -529,7 +608,7 @@ class Game2048 {
      * @private
      */
     _printUsers(){
-        // console.log(`room #${this._room_id}`, this._getUsersListInfo())
+        console.log(`room #${this._room_id}`, this._getUsersListInfo())
     }
 
     /**
@@ -575,7 +654,7 @@ class Game2048 {
                     const game = Game2048.getGame(room_id);
                     game.registerUser(socket, user_id);
                 } else {
-                    socket.emit(types.REJECTED, messages.rejected(room_id, user_id, 4));
+                    socket.emit(types.ERROR, messages.error(3, 'Game hash validation fails'));
                 }
             })
         })

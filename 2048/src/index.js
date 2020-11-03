@@ -54,7 +54,6 @@ window.addEventListener("resize", resize(app, width, height));
 
 function startApp () {
     game.build(stage, resources, isMobile);
-    game.setupNetworkEvents();
 }
 
 

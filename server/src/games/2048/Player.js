@@ -28,7 +28,13 @@ class Player {
 
         this.data = {};
 
-        this.lastMoveData = {};
+        this.moveData = null;
+
+        this._snapshot = null;
+
+        this.timeLeft = 0;
+
+        this.collectedStopper = false;
     }
 
     /**
@@ -82,23 +88,18 @@ class Player {
         this.gameover = true;
     }
 
+    set snapshot(data){
+        this._snapshot = data;
+    }
 
-    /**
-     * set last move data
-     * @param data
-     */
-    setLastMoveData(data){
-        this.lastMoveData = data;
+    get snapshot(){
+        return {
+            ...this._snapshot,
+            gameover : this.gameover
+        }
     }
 
 
-    /**
-     * get last move data
-     * @return {{}}
-     */
-    getLastMoveData(){
-        return this.lastMoveData;
-    }
 
 }
 

@@ -261,6 +261,33 @@
         "y": 0
       }
     }
-  }
+  },
 
+  "errorPopupLayout" : {
+    "x" : 160,
+    "y" : 295,
+    "width" : 720,
+    "height" : 420,
+    "radius"  : 6,
+    "alpha"  : 0.92,
+
+    "text1" : {
+      "x" : 360,
+      "y": 70,
+      "fontSize" : 50,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "text2" : {
+      "x" : 360,
+      "y": 210,
+      "fontSize" : 25,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  }
 }

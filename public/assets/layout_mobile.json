@@ -271,5 +271,33 @@
     "width" : 543,
     "height" : 240,
     "radius"  : 6
+    },
+
+  "errorPopupLayout" : {
+    "x" : 15,
+    "y" : 295,
+    "width" : 545,
+    "height" : 420,
+    "radius"  : 6,
+    "alpha"  : 0.92,
+
+    "text1" : {
+      "x" : 272,
+      "y": 70,
+      "fontSize" : 50,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "text2" : {
+      "x" : 272,
+      "y": 210,
+      "fontSize" : 25,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
     }
+  }
 }
