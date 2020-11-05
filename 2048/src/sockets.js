@@ -3,12 +3,17 @@ import io from "socket.io-client";
 export function connect() {
     let socket;
 
-
+    const options = {
+        timeout : 1000
+    }
     try {
-        socket = window.location.hostname === 'localhost'
-            ? io('http://localhost:5000/2048')
+        socket =
+            (window.location.hostname === 'localhost' ||
+            /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/.test(window.location.hostname)
+            )
+            ? io(window.location.hostname  + ':5000/2048', options)
             // ? io('https://game2048multiplayer.herokuapp.com/2048', options)
-            : io("/2048");
+            : io("/2048", options);
     } catch (e) {
         console.log('connection error', e)
     }
@@ -20,13 +25,21 @@ export function connect() {
 
 export function setupNetworkEvents(game, socket){
 
+    let reconnecting = false;
+
     socket.on("disconnect", function() {
         console.log("Disconnected");
+        game.connectionLost();
     });
 
     socket.on("reconnect", function() {
         // do not rejoin from here, since the socket.id token and/or rooms are still
         // not available.
+        reconnecting = true;
+        if (game.gameStarted && !game.isGameCompleted){
+            game.join();
+        }
+        game.connectionBackAlive();
         console.log("Reconnecting");
     });
 
@@ -75,15 +88,22 @@ export function setupNetworkEvents(game, socket){
         }
 
         const stopCell = e.data.stopCell || 2048;
-        const totalTime = e.data.totalTime || 60;
-        const elapsedTime = e.data.elapsedTime || 0;
-        game.setUpTimer(totalTime, elapsedTime);
+
+
         game.stopCell = stopCell;
 
         if (e.data.gameStarted){
             game.restoreGame(e.data);
+        } else {
+            const totalTime = e.data.totalTime || 60;
+            const elapsedTime = e.data.elapsedTime || 0;
+            game.setUpTimer(totalTime, elapsedTime);
         }
 
+        if (reconnecting){
+            game.gameRejoined();
+        }
+        reconnecting = false;
     })
 
     socket.on('opponent_joined', (data)=>{
@@ -122,9 +142,9 @@ export function setupNetworkEvents(game, socket){
     })
 
 
-    socket.on('time_sync', data =>{
-        game.timeSync(data.time);
-    })
+    // socket.on('game_sync', data =>{
+    //     game.restoreGame(data);
+    // })
 }
 
 

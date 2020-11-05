@@ -12,7 +12,7 @@ class Player {
          * user
          * @type {number}
          */
-        this.score = 0;
+        this._score = 0;
 
         /**
          * is user active or not
@@ -68,22 +68,19 @@ class Player {
      * @return {Object}
      */
     getInfo(me = false){
-        return {
+        return JSON.stringify( {
             id : this.id,
             active : this.active,
             socket : this.getSocketId(),
             data : this.data,
             me
-        }
+        })
     }
 
     getUserAmount(){
         return this.data ? parseFloat(this.data.amount) : 0;
     }
 
-    /**
-     * mark that user completed the game
-     */
     completeGame(){
         this.gameover = true;
     }
@@ -99,6 +96,14 @@ class Player {
         }
     }
 
+
+    set score(value){
+        this._score = value || 0;
+    }
+
+    get score(){
+        return this._score || 0;
+    }
 
 
 }

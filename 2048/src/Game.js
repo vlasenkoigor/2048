@@ -45,10 +45,15 @@ export class Game {
         this.timeout = false;
 
         /**
-         * is game over
+         * is game over for the player
          * @type {boolean}
          */
         this.isGameOver = false;
+
+        this.isGameCompleted = false;
+
+        this.gameStarted = false;
+
 
         /**
          * is enables state to move
@@ -321,12 +326,16 @@ export class Game {
     startGame(){
         const {grid, opponentGrid, scoreboard, opponentScoreboard} = this;
 
+        console.log('start game')
+        this.gameStarted = true;
         this.score = 0;
         this.timeout = false;
         this.isGameOver = false;
+        this.isGameCompleted = false;
         this.didOpponentCompleteGame = false;
         this.gameOverPopup.hide();
         this.opponentGameOver.hide();
+        this.movePromise = Promise.resolve();
 
         grid.reset();
         opponentGrid.reset();
@@ -351,11 +360,13 @@ export class Game {
     }
 
     enable(){
+        console.log('enable')
         this.enabled = true;
         this.surrenderButton.enable();
     }
 
     disable(){
+        console.log('disable')
         this.enabled = false;
         this.surrenderButton.disable();
     }
@@ -374,6 +385,7 @@ export class Game {
     move (direction){
         if (!this.enabled) return;
 
+        window.movePromise = this.movePromise;
         this.grid.skip();
         this.movePromise = this.movePromise
             .then(()=>{
@@ -472,11 +484,17 @@ export class Game {
      * game over
      */
     gameOver(timesUp = false){
-        const timeLeft = timesUp ? 0 : this.timer.timerValue;
-        this.socket.emit('game_over', {score : this.score, timeLeft});
+
+        this.sendGameOver(timesUp);
         this.isGameOver = true;
         this.showGameOver();
         this.disable();
+    }
+
+    sendGameOver(timesUp){
+        const timeLeft = timesUp ? 0 : this.timer.timerValue;
+        this.socket.emit('game_over', {score : this.score || 0, timeLeft});
+
     }
 
     /**
@@ -487,12 +505,15 @@ export class Game {
     }
 
     /**
-     * show game resuld
+     * show game result
      * @param data
      */
     showGameResult(data) {
+        this.isGameCompleted = true;
         this.disable();
-        const {result, score, opponentScore} = data;
+        const {result, score, opponentScore, snapshot} = data;
+        this.timer.stop(snapshot.timeLeft);
+        this.syncUI(snapshot)
         this.showOpponentPopup(opponentScore);
         if (this.gameOverPopup.visible === false){
             this.gameOverPopup.show(score, false);
@@ -506,9 +527,6 @@ export class Game {
         this.opponentGameOver.show(score);
     }
 
-    timeSync(time){
-        this.timer.stop(time);
-    }
 
     /**
      * set up controllers
@@ -516,7 +534,6 @@ export class Game {
     setupControllers(){
 
         SwipeGesture.listen(this.grid, direction=>{
-            console.log('swipe', direction);
             this.move(direction);
         })
 
@@ -559,57 +576,120 @@ export class Game {
      * @param data
      */
     restoreGame(data){
-
         const {snapshot, opponentSnapshot , gameCompleted} = data;
+
+        console.log('restoreGame')
+        this.syncUI(data);
 
         if (!snapshot) return;
 
-        const {board, score} = snapshot;
+        const score = snapshot ? snapshot.score : 0;
         const opponentScore =  opponentSnapshot ? opponentSnapshot.score : 0
+        const gameOver =  snapshot ? snapshot.gameover : false
+        const opponentGameOver =  opponentSnapshot ? opponentSnapshot.gameover : false
 
-        this.score = score;
-
-        this.didOpponentCompleteGame = opponentSnapshot ? (opponentSnapshot.gameover || gameCompleted) : false;
-        const didPlayerCompletedGame = snapshot ? (snapshot.gameover || gameCompleted) : false;
-
-
-        if (didPlayerCompletedGame){
-            this.showGameOver();
-        }
-
-        if (this.didOpponentCompleteGame && !gameCompleted){
-            this.showOpponentPopup(opponentScore);
-        }
+        this.score = score || 0;
+        this.didOpponentCompleteGame = opponentGameOver || gameCompleted;
 
         if (gameCompleted){
-            this.showGameResult({
-                opponentScore, score
-            });
+            this.showGameOver();
+            this.showOpponentPopup(opponentScore);
+            this.timer.stop(data.timeLeft);
         } else {
-            this.startTimer();
+            if (this.isGameOver){
+                this.sendGameOver();
+            } else {
+
+                // resume timer
+                this.startTimer();
+
+                if (opponentGameOver){
+                    this.showOpponentPopup(opponentScore);
+                }
+
+                if (gameOver){
+                    // if player completed the game
+                    // show pop up for him
+                    this.showGameOver();
+
+                    // and disable UI
+                    this.disable();
+                } else {
+                    if (!this.isGameOver){
+                        this.enable();
+                    }
+                }
+            }
+
         }
-
-
-        board && this.grid._syncCellsState(board);
-        this.scoreboard.setValue(score || 0);
-
-        if (!snapshot.gameover && !gameCompleted){
-            this.enable();
-        }
-
-        if (opponentSnapshot){
-            const {board, score} = opponentSnapshot;
-            board && this.opponentGrid._syncCellsState(board);
-            this.opponentScoreboard.setValue(score || 0);
-        }
-
     }
+
+    syncUI(data){
+        const {snapshot, opponentSnapshot} = data;
+        if (!this.isGameCompleted){
+            this.syncTimer(data);
+        }
+        this.syncPlayerBoard(snapshot);
+        this.syncOpponentBoard(opponentSnapshot);
+    }
+
+    syncPlayerBoard(snapshot){
+        if (!snapshot) return;
+        const {board, score} = snapshot;
+        if (board){
+            this.grid.reset();
+            this.grid._syncCellsState(board);
+        }
+        this.scoreboard.setValue(score || 0);
+    }
+
+    syncOpponentBoard(snapshot){
+        if (!snapshot) return;
+        const {board, score} = snapshot;
+        if (board){
+            this.opponentGrid.reset();
+            this.opponentGrid._syncCellsState(board);
+        }
+        this.opponentScoreboard.setValue(score || 0);
+    }
+
+    syncTimer(data){
+        const totalTime = data.totalTime || 60;
+        const elapsedTime = data.elapsedTime || 0;
+        this.setUpTimer(totalTime, elapsedTime);
+    }
+
 
     onGameError(code, message){
         this.disable();
         this.errorPopup.show(code, message);
         this.socket.disconnect();
         this.timer.stop();
+    }
+
+    connectionLost(){
+        this.disable();
+        this.errorPopup.show(
+            null,
+            "Connection Lost! "
+
+        );
+
+    }
+
+    connectionBackAlive(){
+        if (this.gameStarted && !this.isGameCompleted){
+            this.errorPopup.show(
+                null,
+                "Reconnecting to the game... "
+            );
+        } else {
+            this.errorPopup.hide();
+        }
+    }
+
+    gameRejoined(){
+        this.errorPopup.hide();
     }
 
     /**

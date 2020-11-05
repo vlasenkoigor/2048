@@ -24,8 +24,6 @@ export class Timer extends Container{
         this.tf2 = this._createBankTf(layout.tf2);
         this.tf2 && this.addChild(this.tf2);
 
-
-
         this.bars = this._createBars(layout.progress);
         this.bars.forEach(bar => this.addChild(bar))
 
@@ -36,7 +34,7 @@ export class Timer extends Container{
 
         this.finishTime = null;
 
-        this.setTimerValue();
+        this.updateTimerValue();
 
         this._completeCallback = ()=>{}
 
@@ -44,19 +42,82 @@ export class Timer extends Container{
     }
 
     setup(value, elapsedTime = 0){
-        this.totalSeconts = value;
+        this.totalSeconds = value;
         this.elapsedSeconds = elapsedTime;
         const currentTime = value - elapsedTime;
         this.timerValue = currentTime < 0 ? 0 : currentTime;
 
-        this.setTimerValue();
+        this.updateTimerValue();
+        this.updateBarsProgress(this.elapsedSeconds * 100 / this.totalSeconds );
     }
 
-    setTimerValue(value){
+
+    startCountDown(callback = ()=>{}){
+        this.stop();
+
+        const time = this.timerValue;
+        this.updateTimerValue();
+
+        tickerService.postMessage('start');
+
+        tickerService.onmessage = e =>{
+            if (e.data === 'tick'){
+                this._onSecondTick();
+            }
+        }
+
+        this.stopped = false;
+        const currentTime = +new Date();
+        this.startTime = currentTime - ((this.totalSeconds - this.timerValue) * 1000);
+        this.lastTime = currentTime;
+        this.finishTime = currentTime + time * 1000;
+        this._completeCallback = callback;
+        ticker.shared.add(this._onFrameTick, this);
+    }
+
+    _onFrameTick(){
+        const currentTime = +new Date(),
+            totalTime = this.totalSeconds * 1000,
+            elapsedTime = currentTime - this.startTime,
+            progress = elapsedTime * 100 / totalTime;
+        this.updateBarsProgress(progress);
+        if (+new Date() >= this.finishTime){
+            ticker.shared.remove(this._onFrameTick, this);
+        }
+    }
+
+
+    updateBarsProgress(progress){
+        this.bars.forEach(bar => bar.setProgress(100 - progress))
+    }
+
+
+    _onSecondTick(){
+        this.timerValue--
+        this.updateTimerValue();
+        if (this.timerValue <= 0) {
+            this._completeCallback();
+            tickerService.postMessage('stop');
+        }
+    }
+
+
+    updateTimerValue(value){
         value = value !== undefined ? value : this.timerValue;
         const minutes = Math.floor(value / 60);
         const seconds = value % 60;
         this.tf.text = `TIME LIMIT: ${minutes > 9 ? minutes : `0${minutes}`}:${seconds > 9 ? seconds:`0${seconds}`}`
+    }
+
+    stop(time){
+        ticker.shared.remove(this._onFrameTick, this);
+
+        tickerService.postMessage('stop');
+
+        this.updateTimerValue(time);
+        if (time !==  undefined){
+            this.updateBarsProgress((this.totalSeconds - time) * 100 / this.totalSeconds );
+        }
     }
 
     _createCounterTf(layout){
@@ -122,68 +183,6 @@ export class Timer extends Container{
         ]
 
     }
-
-
-    startCountDown(callback = ()=>{}){
-        this.stop();
-
-        const time = this.timerValue;
-        this.setTimerValue();
-
-        tickerService.postMessage('start');
-
-        tickerService.onmessage = e =>{
-            if (e.data === 'tick'){
-                this._onSecondTick();
-            }
-        }
-
-        this.stopped = false;
-        const currentTime = +new Date();
-        this.startTime = currentTime - (this.elapsedSeconds * 1000);
-        this.lastTime = currentTime;
-        this.finishTime = currentTime + time * 1000;
-        this._completeCallback = callback;
-        ticker.shared.add(this._onTick, this);
-    }
-
-    _onTick(){
-        const currentTime = +new Date(),
-            totalTime = this.totalSeconts * 1000,
-            progressTime = currentTime - this.startTime,
-            progress = progressTime * 100 / totalTime;
-
-        if (currentTime >= this.finishTime){
-            ticker.shared.remove(this._onTick, this);
-        }
-        this.bars.forEach(bar => bar.setProgress(100 - progress))
-    }
-
-
-
-    _onSecondTick(){
-        this.timerValue--
-        this.setTimerValue();
-        if (this.timerValue <= 0) {
-            this._completeCallback();
-            tickerService.postMessage('stop');
-        }
-    }
-
-    stop(time){
-        if (this.stopped) return;
-        this.stopped = false;
-
-        ticker.shared.remove(this._onTick, this);
-        this._onTick();
-        tickerService.postMessage('stop');
-
-        if (time !== undefined){
-            this.setTimerValue(time);
-        }
-    }
-
-
 
 
     setBankValue(value){

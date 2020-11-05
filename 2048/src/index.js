@@ -47,6 +47,11 @@ const game = new Game(width, height);
 
 Promise.all([loadResourcePromise, loadFontsPromise])
     .then(startApp)
+    .catch(e =>{
+        if (e === "fonts"){
+            alert('error loading fonts!')
+        }
+    })
 
 
 resize(app, width, height)();

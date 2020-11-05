@@ -1,5 +1,5 @@
-module.exports = (result, score, opponentScore)=>{
+module.exports = (result, score, opponentScore, snapshot)=>{
     return {
-        result, score , opponentScore
+        result, score , opponentScore, snapshot
     }
 }

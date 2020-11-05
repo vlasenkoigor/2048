@@ -106,6 +106,7 @@ class Game2048 {
         } else {
             this._players.push(player);
         }
+        socket.join(room_id);
 
         this._setupGameListeners(socket);
 
@@ -131,7 +132,7 @@ class Game2048 {
         player.data = user_data;
 
         if (player.active){
-            socket.join(room_id);
+
             this.emitJoined(player, room_id, reconnected);
             this.broadCastJoined(player, room_id, reconnected);
 
@@ -147,12 +148,26 @@ class Game2048 {
         const socket = player.socket;
 
 
-        const elapsedTime = this.getElapsedSeconds();
+        socket.emit(
+            types.JOINED,
+            messages.joined(
+                user_id,
+                room_id,
+                reconnected,
+                this._getUsersListInfo(user_id),
+                this.getSnapshotData(player))
+        );
+    }
+
+    getSnapshotData(player){
+        const elapsedTime = this.gameStarted ? this.getElapsedSeconds() : 0;
+        const timeLeft = this.timeup ? 0 : rules.time - elapsedTime;
 
         let data = {
             totalTime : rules.time,
             stopCell : rules.stopCell,
-            elapsedTime : this.gameStarted ?  elapsedTime : 0,
+            elapsedTime : elapsedTime,
+            timeLeft : timeLeft,
             gameStarted : this.gameStarted,
             gameCompleted : this.gameCompleted
         }
@@ -161,14 +176,27 @@ class Game2048 {
             data = {...data, ...this._restorePlayerState(player)}
         }
 
-        socket.emit(types.JOINED, messages.joined(user_id,  room_id, reconnected, this._getUsersListInfo(user_id), data));
+        return data;
+    }
+
+    /**
+     *
+     * @param player {Player}
+     * @private
+     */
+    _restorePlayerState(player){
+        const opponent =  this._players.find(p => p !== player)
+        return  {
+            snapshot : player.snapshot,
+            opponentSnapshot : opponent.snapshot
+        }
     }
 
     getElapsedSeconds(){
 
-        let elapsedTime = 0;
+        let elapsedTime;
         if (this.gameCompleted){
-            elapsedTime = !this.timeup  ? Math.floor( (this._finishedAt - this._startedAt ) / 1000 ) : 0
+            elapsedTime = !this.timeup  ? Math.floor( (this._finishedAt - this._startedAt ) / 1000 ) : rules.time
         } else {
             elapsedTime = Math.floor( ((+new Date()) - this._startedAt ) / 1000)
         }
@@ -193,18 +221,7 @@ class Game2048 {
             .emit(types.OPPONENT_JOINED, messages.joined(user_id, room_id, reconnected, this._getUsersListInfo()));
     }
 
-    /**
-     *
-     * @param player {Player}
-     * @private
-     */
-    _restorePlayerState(player){
-        const opponent =  this._players.find(p => p !== player)
-        return  {
-            snapshot : player.snapshot,
-            opponentSnapshot : opponent.snapshot
-        }
-    }
+
 
 
     _getPlayerData(user_id){
@@ -332,34 +349,16 @@ class Game2048 {
         io.to(this._room_id).emit(types.START_GAME);
 
 
-        this.runTicker();
+        this.setTimeout();
 
     }
 
 
-    runTicker(){
-        setInterval(()=>{
-            this.onTick();
-        }, 1000);
-    }
-
-    onTick(){
-        const data =  {
-            time : --this.currentTimeCountdown
-        }
-
-        io.to(this._room_id)
-            .emit(
-                types.TICK,
-                data
-            );
-    }
 
 
     setTimeout(){
         this.timeoutUUID = setTimeout(()=>{
-            this.timeup = true;
-
+            this.onGameTimeOut();
             console.log('times up')
         }, rules.time * 1000)
     }
@@ -370,6 +369,20 @@ class Game2048 {
             this.timeoutUUID = null;
         }
     }
+
+    onGameTimeOut(){
+        this.timeup = true;
+
+        this.waitForResultsAfterTimeout();
+    }
+
+    waitForResultsAfterTimeout(){
+        setTimeout(()=>{
+            this._players.forEach(player => player.completeGame())
+            this.onGameOver();
+        }, 2000)
+    }
+
 
 
     /**
@@ -417,7 +430,7 @@ class Game2048 {
         const player = this._players.find(p => p.getSocketId() === socket.id);
 
         if (player){
-            player.score = score;
+            player.score = score || 0;
             player.moveData = data.moveData;
             player.snapshot = data.snapshot;
         }
@@ -448,7 +461,7 @@ class Game2048 {
         const player = this._players.find(p => p.getSocketId() === socket.id);
         const {score} = data;
 
-        player.score = score;
+        player.score = score || 0;
         player.completeGame();
 
         const player1 = this._players[0];
@@ -470,11 +483,10 @@ class Game2048 {
         const player2 = this._players[1];
         this._finishedAt = +new Date();
 
-
-        this._sendTimeSync(rules.time - this.getElapsedSeconds());
-
         this.gameCompleted = true;
 
+        // this._sendTimeSync(rules.time - this.getElapsedSeconds());
+        this._players.forEach( p => {this.sendSyncGameState(p)})
 
         this.stopTimeout();
 
@@ -515,15 +527,19 @@ class Game2048 {
             })
     }
 
-    _sendTimeSync(time){
-        io.to(this._room_id).emit(types.TIME_SYNC, {time});
+
+
+    sendSyncGameState(player){
+        player.socket && player.socket.emit('game_sync', this.getSnapshotData(player))
+
     }
 
-    // onGameTimeOut(){
-    //     console.log('timeout');
-    //     this._players.forEach(player => player.completeGame())
-    //     this.onGameOver();
-    // }
+
+    _sendOpponentGameOverMessage(socket, score){
+        socket.to(this._room_id).broadcast
+            .emit(types.OPPONENT_GAME_OVER,
+                messages.opponent_game_over(score))
+    }
 
     /**
      * send message that game is drawn
@@ -533,26 +549,23 @@ class Game2048 {
         const player1 = this._players[0];
         const player2 = this._players[1];
 
+        const snapshot1 = this.getSnapshotData(player1);
+        const snapshot2 = this.getSnapshotData(player2);
+
         player1.socket && player1.socket
-            .emit(types.MATCH_RESULT, messages.match_result(this._result, player1.score, player2.score));
+            .emit(types.MATCH_RESULT, messages.match_result(this._result, player1.score, player2.score, snapshot1));
         player2.socket && player2.socket
-            .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score));
+            .emit(types.MATCH_RESULT, messages.match_result(this._result, player2.score, player1.score, snapshot2));
     }
-
-    _sendOpponentGameOverMessage(socket, score){
-        socket.to(this._room_id).broadcast
-            .emit(types.OPPONENT_GAME_OVER,
-                messages.opponent_game_over(score))
-    }
-
 
     /**
      * send message to the winner
      * @private
      */
     _sendWinnerMessage(){
+        const snapshot = this.getSnapshotData(this._winner);
         this._winner.socket && this._winner.socket
-            .emit(types.MATCH_RESULT, messages.match_result('win', this._winner.score, this._loser.score));
+            .emit(types.MATCH_RESULT, messages.match_result('win', this._winner.score, this._loser.score, snapshot));
     }
 
     /**
@@ -560,8 +573,9 @@ class Game2048 {
      * @private
      */
     _sendLoserMessage(){
+        const snapshot = this.getSnapshotData(this._loser);
         this._loser.socket && this._loser.socket
-            .emit(types.MATCH_RESULT, messages.match_result('lose', this._loser.score, this._winner.score));
+            .emit(types.MATCH_RESULT, messages.match_result('lose', this._loser.score, this._winner.score, snapshot));
     }
 
     /**
@@ -573,7 +587,8 @@ class Game2048 {
         const player2 = this._players[1];
 
         // if we have drawn
-        if (player1.score === player2.score || (player1.collectedStopper && player2.collectedStopper)){
+        console.log('defining winner ', player1.collectedStopper, player1.score, player2.collectedStopper, player2.score)
+        if ( (player1.score === player2.score) || (player1.collectedStopper && player2.collectedStopper)){
             console.log(`Game #${this._room_id} result = DRAWN`)
             this._result = 'drawn';
             this._winner = null;

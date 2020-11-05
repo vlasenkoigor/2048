@@ -2,7 +2,6 @@ let uuid = null;
 onmessage = function(e) {
     const {data : eventName} = e;
 
-    console.log(eventName);
     if (eventName === 'start'){
         start();
     }
