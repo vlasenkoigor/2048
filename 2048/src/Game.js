@@ -266,6 +266,7 @@ export class Game {
             ignoreProviderFails
         } = getParameters();
 
+        console.log('join_game')
         this.socket.emit('join_game', {
             user_id,
             room_id,

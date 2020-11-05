@@ -35,6 +35,7 @@ export function setupNetworkEvents(game, socket){
     socket.on("reconnect", function() {
         // do not rejoin from here, since the socket.id token and/or rooms are still
         // not available.
+        console.log("Reconnecting", game.gameStarted , game.isGameCompleted);
         reconnecting = true;
         if (game.gameStarted && !game.isGameCompleted){
             game.join();
