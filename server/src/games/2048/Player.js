@@ -68,13 +68,13 @@ class Player {
      * @return {Object}
      */
     getInfo(me = false){
-        return JSON.stringify( {
+        return  {
             id : this.id,
             active : this.active,
             socket : this.getSocketId(),
             data : this.data,
             me
-        })
+        }
     }
 
     getUserAmount(){
