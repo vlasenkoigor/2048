@@ -119,6 +119,8 @@ export class Game {
          */
         this.stopCell = 2048;
 
+        this.errorShown = false;
+
     }
 
 
@@ -336,6 +338,7 @@ export class Game {
         this.gameOverPopup.hide();
         this.opponentGameOver.hide();
         this.movePromise = Promise.resolve();
+        this.errorShown = false;
 
         grid.reset();
         opponentGrid.reset();
@@ -578,6 +581,7 @@ export class Game {
     restoreGame(data){
         const {snapshot, opponentSnapshot , gameCompleted} = data;
 
+        this.errorShown = false;
         console.log('restoreGame')
         this.syncUI(data);
 
@@ -662,12 +666,14 @@ export class Game {
 
     onGameError(code, message){
         this.disable();
+        this.errorShown = true;
         this.errorPopup.show(code, message);
         this.socket.disconnect();
         this.timer.stop();
     }
 
     connectionLost(){
+        if (this.errorShown ) return;
         this.disable();
         this.errorPopup.show(
             null,
@@ -678,6 +684,7 @@ export class Game {
     }
 
     connectionBackAlive(){
+        if (this.errorShown ) return;
         if (this.gameStarted && !this.isGameCompleted){
             this.errorPopup.show(
                 null,
