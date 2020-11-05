@@ -595,6 +595,7 @@ export class Game {
 
         this.score = score || 0;
         this.didOpponentCompleteGame = opponentGameOver || gameCompleted;
+        this.gameStarted = !gameCompleted;
 
         if (gameCompleted){
             this.showGameOver();
