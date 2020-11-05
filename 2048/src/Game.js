@@ -679,7 +679,7 @@ export class Game {
         this.disable();
         this.errorPopup.show(
             null,
-            "Connection Lost! "
+            "Connection Lost!"
 
         );
 

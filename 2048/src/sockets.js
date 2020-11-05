@@ -4,15 +4,18 @@ export function connect() {
     let socket;
 
     const options = {
-        timeout : 1000
+        timeout : 400,
+        transports : ['websocket'],
+        reconnectionDelay : 500,
+        reconnectionDelayMax : 2000,
     }
     try {
         socket =
             (window.location.hostname === 'localhost' ||
             /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/.test(window.location.hostname)
             )
-            ? io(window.location.hostname  + ':5000/2048', options)
-            // ? io('https://game2048multiplayer.herokuapp.com/2048', options)
+            // ? io(window.location.hostname  + ':5000/2048', options)
+            ? io('https://game2048multiplayer.herokuapp.com/2048', options)
             : io("/2048", options);
     } catch (e) {
         console.log('connection error', e)
@@ -142,10 +145,28 @@ export function setupNetworkEvents(game, socket){
         game.showGameResult(data);
     })
 
+     const events =    [
+        'error',
+            'connect_error',
+            'connect_timeout',
+            'reconnect_attempt',
+            'reconnecting',
+            'reconnect_error',
+            'reconnect_error',
+            'ping',
+            'pong'
+        ]
 
-    // socket.on('game_sync', data =>{
-    //     game.restoreGame(data);
-    // })
+    events.forEach( eventName => {
+        socket.on(eventName, (p1) =>{
+            if (typeof p1 === 'object'){
+                p1 = [
+                    p1.name, p1.type, p1.message,
+                ].join(',')
+            }
+            console.log('event:', eventName, p1);
+        })
+    })
 }
 
 
