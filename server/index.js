@@ -13,8 +13,9 @@ if (process.env.NODE_ENV === 'production'){
     app.use(express.static("../public"));
 }
 
-const io = socket(server, {
-    pingInterval: 2000,
-    pingTimeout: 1000,
-});
+// {
+//     pingInterval: 2000,
+//         pingTimeout: 1000,
+// }
+const io = socket(server);
 Game2048.start(io)

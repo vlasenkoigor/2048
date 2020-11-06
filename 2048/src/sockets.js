@@ -4,10 +4,10 @@ export function connect() {
     let socket;
 
     const options = {
-        timeout : 400,
+        // timeout : 400,
         transports : ['websocket'],
-        reconnectionDelay : 500,
-        reconnectionDelayMax : 2000,
+        // reconnectionDelay : 500,
+        // reconnectionDelayMax : 2000,
     }
     try {
         socket =
