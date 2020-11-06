@@ -14,8 +14,8 @@ export function connect() {
             (window.location.hostname === 'localhost' ||
             /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/.test(window.location.hostname)
             )
-            // ? io(window.location.hostname  + ':5000/2048', options)
-            ? io('https://game2048multiplayer.herokuapp.com/2048', options)
+            ? io(window.location.hostname  + ':5000/2048', options)
+            // ? io('https://game2048multiplayer.herokuapp.com/2048', options)
             : io("/2048", options);
     } catch (e) {
         console.log('connection error', e)

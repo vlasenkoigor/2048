@@ -31,6 +31,11 @@ export class Grid extends Container{
 
 
     reset(){
+        if (this._currentTimeLine){
+            this._currentTimeLine.seek(this._currentTimeLine.endTime(), true);
+            this._currentTimeLine = null;
+        }
+
         this._cells.forEach((cell)=>{
             cell && cell.destroy({children : true})
         })
