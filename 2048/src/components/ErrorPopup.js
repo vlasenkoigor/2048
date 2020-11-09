@@ -6,6 +6,12 @@ export class ErrorPopup extends Container{
     constructor(layout) {
         super();
 
+        this.build(layout);
+        this.hide();
+    }
+
+    build(layout){
+
         const {
             x, y,
             width,
@@ -44,8 +50,8 @@ export class ErrorPopup extends Container{
             text2
         )
 
-        this.hide();
     }
+
 
 
     _createBackground(width, height, radius, alpha){

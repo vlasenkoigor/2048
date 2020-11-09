@@ -124,7 +124,7 @@
       }
     },
     "tf2" : {
-      "x" : -250,
+      "x" : -185,
       "y" : 30,
       "anchor" : {
         "x": 0,
@@ -294,6 +294,25 @@
       "x" : 272,
       "y": 210,
       "fontSize" : 25,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+
+  "networkErrorPopupLayout" : {
+    "x" : 120,
+    "y" : 440,
+    "width" : 325,
+    "height" : 120,
+    "radius"  : 6,
+    "alpha"  : 0.92,
+
+    "text" : {
+      "x" : 162,
+      "y": 60,
+      "fontSize" : 18,
       "anchor" : {
         "x": 0.5,
         "y": 0.5

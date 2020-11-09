@@ -8,11 +8,11 @@ export class TopBar extends Graphics {
 
     draw(layout){
         const {
-            x, y, width, height
+            x, y, width, height, radius
         } = layout
         this.clear();
         this.beginFill(0xF2EFDD);
-        this.drawRect(x, y, width, height);
+        this.drawRoundedRect(x, y, width, height, radius || 0);
         this.endFill();
     }
 

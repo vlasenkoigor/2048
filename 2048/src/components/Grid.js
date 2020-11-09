@@ -14,7 +14,7 @@ export class Grid extends Container{
         this._cellSize = cellSize;
         this._vGap = vGap;
         this._hGap = hGap;
-        this._time = 0.17;
+        this._time = 0.09;
 
         // grid bg creation
         this._bg = this._drawGridBackground();

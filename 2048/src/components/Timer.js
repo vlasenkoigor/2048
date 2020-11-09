@@ -1,12 +1,13 @@
 import {Container, Text, Graphics, ticker} from 'pixi.js';
 
 import Worker from '../serviceWorkers/ticker.worker.js';
+import {BankValue} from "./BankValue";
 
 const tickerService = new Worker();
 
 export class Timer extends Container{
 
-    constructor(layout) {
+    constructor(layout, resources) {
         super();
 
         this.lastTime = +new Date();
@@ -21,8 +22,8 @@ export class Timer extends Container{
         this.tf = this._createCounterTf(layout.tf);
         this.tf && this.addChild(this.tf);
 
-        this.tf2 = this._createBankTf(layout.tf2);
-        this.tf2 && this.addChild(this.tf2);
+        this.bankValue = this._createBankValue(layout.tf2, resources);
+        this.bankValue && this.addChild(this.bankValue);
 
         this.bars = this._createBars(layout.progress);
         this.bars.forEach(bar => this.addChild(bar))
@@ -140,24 +141,8 @@ export class Timer extends Container{
         return tf;
     }
 
-    _createBankTf(layout){
-        const {x, y} = layout;
-        const style = {
-            fontFamily : 'Fira Sans',
-            fontSize : 24,
-            fontWeight : 500,
-            fill : "#00C443"
-        }
-        const tf = new Text(`BANK: `, style);
-
-        tf.x = x;
-        tf.y = y;
-
-        if (layout.anchor){
-            tf.anchor.set(layout.anchor.x, layout.anchor.y);
-        }
-
-        return tf;
+    _createBankValue(layout, resources){
+        return  new BankValue(layout, resources);
     }
 
 
@@ -185,8 +170,8 @@ export class Timer extends Container{
     }
 
 
-    setBankValue(value){
-        this.tf2.text = `BANK: ${value}`
+    setBankValue(value, currency){
+        this.bankValue.setValues(value, currency)
     }
 
 }

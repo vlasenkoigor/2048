@@ -18,10 +18,10 @@ import {MobileGridBackground} from "./components/MobileGridBackground";
 
 import {SwipeGesture} from "./SwipeGesture";
 import {ErrorPopup} from "./components/ErrorPopup";
+import {NetworkErrorPopup} from "./components/NetworkErrorPopup";
 export class Game {
 
     constructor(width, height,) {
-
         /**
          * game's root stage
          * @type {null}
@@ -140,7 +140,7 @@ export class Game {
             vsLabelLayout, timerLayout, logoLayout,  surrenderLayout,
             topBarLayout, onlineLayout, infoTextLayout,
             gameOverPopupLayout,
-            opponentGameOverPopupLayout, errorPopupLayout,
+            opponentGameOverPopupLayout, errorPopupLayout,networkErrorPopupLayout,
             opponentGridBgLayout
         } = layout;
 
@@ -201,7 +201,7 @@ export class Game {
         }
 
         // timer
-        const timer = new Timer(timerLayout);
+        const timer = new Timer(timerLayout, resources);
         stage.addChild(timer);
         this.timer = timer;
 
@@ -247,6 +247,13 @@ export class Game {
         stage.addChild(errorPopup);
 
 
+        const networkErrorPopup = new NetworkErrorPopup(networkErrorPopupLayout, true);
+        this.networkErrorPopup = networkErrorPopup;
+        stage.addChild(networkErrorPopup);
+
+
+
+
         this.setupControllers();
 
         if (this.isSinglePlay){
@@ -288,8 +295,8 @@ export class Game {
         this.opponentGrid._syncCellsState(snapshot.board);
     }
 
-    setPrizeValue(value){
-        this.timer.setBankValue(value)
+    setPrizeValue(value, currency){
+        this.timer.setBankValue(value, currency)
     }
 
     /**
@@ -677,7 +684,7 @@ export class Game {
     connectionLost(){
         if (this.errorShown ) return;
         this.disable();
-        this.errorPopup.show(
+        this.networkErrorPopup.show(
             null,
             "Connection Lost!"
 
@@ -688,17 +695,17 @@ export class Game {
     connectionBackAlive(){
         if (this.errorShown ) return;
         if (this.gameStarted && !this.isGameCompleted){
-            this.errorPopup.show(
+            this.networkErrorPopup.show(
                 null,
                 "Reconnecting to the game... "
             );
         } else {
-            this.errorPopup.hide();
+            this.networkErrorPopup.hide();
         }
     }
 
     gameRejoined(){
-        this.errorPopup.hide();
+        this.networkErrorPopup.hide();
     }
 
     /**

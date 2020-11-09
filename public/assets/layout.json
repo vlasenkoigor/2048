@@ -37,7 +37,8 @@
     "x" : 0,
     "y" : 0,
     "width" : 1038,
-    "height" : 106
+    "height" : 106,
+    "radius" : 9
   },
   "playerInfoLayout" : {
     "x" : 166,
@@ -120,7 +121,7 @@
       }
     },
     "tf2" : {
-      "x" : -465,
+      "x" : -395,
       "y" : 30,
       "anchor" : {
         "x": 0,
@@ -284,6 +285,25 @@
       "x" : 360,
       "y": 210,
       "fontSize" : 25,
+      "anchor" : {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+
+  "networkErrorPopupLayout" : {
+    "x" : 355,
+    "y" : 450,
+    "width" : 325,
+    "height" : 120,
+    "radius"  : 6,
+    "alpha"  : 0.92,
+
+    "text" : {
+      "x" : 162,
+      "y": 60,
+      "fontSize" : 18,
       "anchor" : {
         "x": 0.5,
         "y": 0.5
