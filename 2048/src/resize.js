@@ -6,7 +6,6 @@ export function resize (app, WIDTH, HEIGHT) {
 
         const RATIO = WIDTH / HEIGHT;
         const SCREEN_RATIO = innerWidth / innerHeight;
-
         let newWidth;
         // if (SCREEN_RATIO >= 1){
         //     newWidth = innerHeight * RATIO
