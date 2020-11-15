@@ -1,7 +1,6 @@
 export function resize (app, WIDTH, HEIGHT) {
     return function () {
 
-
         const innerWidth = window.innerWidth;
         const innerHeight = window.innerHeight;
 
