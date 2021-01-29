@@ -1,6 +1,6 @@
 import {Container, Text} from 'pixi.js';
 
-export class Logo extends Container{
+export class Logo extends Container {
 
     constructor(layout) {
         super();

@@ -11,6 +11,7 @@ export class Timer extends Container{
         super();
 
         this.lastTime = +new Date();
+
         //seconds
         this.timerValue = 5 * 60;
 
@@ -166,9 +167,7 @@ export class Timer extends Container{
             progress1,
             progress2
         ]
-
     }
-
 
     setBankValue(value, currency){
         this.bankValue.setValues(value, currency)

@@ -1,6 +1,5 @@
 import {Container, Text, Graphics} from 'pixi.js'
 
-
 export class Online extends Container{
     constructor(layout, isMobile) {
         super();
@@ -15,11 +14,8 @@ export class Online extends Container{
             pin.x = text.width;
         }
 
-
-
         this.x = x;
         this.y = y;
-
     }
 
 

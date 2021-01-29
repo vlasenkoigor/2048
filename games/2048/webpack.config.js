@@ -1,13 +1,22 @@
 const path = require('path');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+require('dotenv').config()
 
-module.exports = (env, argv)=>{
+module.exports = (_, argv)=>{
 
     return   {
         entry: { main: './src/index.js'},
+
         output: {
-            path: path.join(__dirname, '../public', 'js'),
+            path: path.join(__dirname, 'dist'),
             filename: '[name].js',
         },
+
+        // plugins: [new HtmlWebpackPlugin({
+        //     template: 'index.html',
+        //     filename: './index.html',
+        // })],
+
         module: {
             rules: [
                 {
@@ -33,8 +42,8 @@ module.exports = (env, argv)=>{
         devServer: {
             liveReload: false,
             hot: true,
-            contentBase: path.join(__dirname, '../public'),
-            publicPath: '/js/'
+            // contentBase: path.join(__dirname, ''),
+            // publicPath: ''
         },
     }
 

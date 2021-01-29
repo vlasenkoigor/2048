@@ -1,8 +1,6 @@
 import * as PIXI from 'pixi.js'
 import * as MobileDetect from 'mobile-detect'
 
-
-
 import {Game} from "./Game";
 import {loadResources} from "./resourceLoader";
 import {loadFonts} from "./fontsLoader";
@@ -25,8 +23,6 @@ const app = new PIXI.Application({
     forceCanvas : true
 })
 document.body.appendChild(app.view);
-
-
 
 
 const {stage, loader} = app;

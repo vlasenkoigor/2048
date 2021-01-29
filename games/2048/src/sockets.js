@@ -47,7 +47,6 @@ export function setupNetworkEvents(game, socket){
         console.log("Reconnecting");
     });
 
-
     socket.on('notification', (data)=>{
         console.log(`%cNotification%c ${data.message}`, 'color:black; background:yellow', 'color:#9c381c')
     })

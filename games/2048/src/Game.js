@@ -54,7 +54,6 @@ export class Game {
 
         this.gameStarted = false;
 
-
         /**
          * is enables state to move
          * @type {boolean}
@@ -266,6 +265,7 @@ export class Game {
     }
 
     join(){
+        debugger
         const {
             user_id,
             room_id,

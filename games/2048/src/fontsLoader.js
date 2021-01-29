@@ -10,7 +10,7 @@ export function loadFonts() {
 
             custom: {
                 families: ['Fira Sans'],
-                urls: ['/fonts.css']
+                urls: ['/assets/fonts/fonts.css']
             },
             active : ()=>{
                 resolve();
