@@ -20,10 +20,10 @@ function getError (error){
 module.exports = {
 
     validate_game : (data)=>{
-
+        const game_id = GAME_ID;
         const {user_id, room_id,battle_id, hash} = data;
 
-        const string = [user_id, room_id, battle_id,SECRET].join(':')
+        const string = [game_id,user_id, room_id, battle_id,SECRET].join(':')
         return  hash === md5(string);
     },
 
