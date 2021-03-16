@@ -72,7 +72,7 @@ module.exports = {
 
         const game_id = GAME_ID;
         const timestamp =  Math.floor(+new Date() / 1000);
-        const string = [game_id, user_id, room_id, timestamp, SECRET].join(':');
+        const string = [game_id, user_id, room_id, battle_id,timestamp, SECRET].join(':');
 
         const hash = md5(string);
 
