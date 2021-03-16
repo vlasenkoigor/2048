@@ -25,7 +25,7 @@ module.exports = {
         return  hash === md5(string);
     },
 
-    get_info : (user_id, room_id )=>{
+    get_info : (user_id, room_id, battle_id )=>{
         const game_id = GAME_ID;
         const string = [game_id, user_id, room_id, SECRET].join(':');
         const hash = md5(string);
@@ -34,6 +34,8 @@ module.exports = {
             game_id,
             user_id,
             room_id,
+            battle_id,
+            timestamp : (+new Date() / 1000),
             hash
         }
 
@@ -49,7 +51,7 @@ module.exports = {
     },
 
 
-    save_result : (user_id, room_id, result_amount = 0, start_timestamp = 0, finish_timestamp = 0, data = {}  )=>{
+    save_result : (user_id, room_id, battle_id, result_amount = 0, start_timestamp = 0, finish_timestamp = 0, data = {}  )=>{
 
         /**
          user_id - id пользователя в системе MP
@@ -71,9 +73,11 @@ module.exports = {
             user_id,
             game_id,
             room_id,
+            battle_id,
             result_amount,
             start_timestamp,
             finish_timestamp,
+            timestamp : (+new Date() / 1000),
             hash,
             data
         }

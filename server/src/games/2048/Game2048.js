@@ -9,8 +9,11 @@ let io = null;
 
 class Game2048 {
 
-    constructor(room_id) {
+    constructor(room_id, battle_id) {
         this._room_id = room_id;
+
+        this._battle_id = battle_id;
+
 
         this._startedAt = + new Date();
 
@@ -225,7 +228,7 @@ class Game2048 {
 
 
     _getPlayerData(user_id){
-        return provider.get_info(user_id, this._room_id);
+        return provider.get_info(user_id, this._room_id, this._battle_id);
     }
 
 
@@ -233,6 +236,7 @@ class Game2048 {
         const
             user_id = user.id,
             room_id = this._room_id,
+            battle_id = this._battle_id,
             start_timestamp = this._startedAt,
             finish_timestamp = this._finishedAt,
             [result_amount, data] = this._calculateUserResultAmount(user, opponent);
@@ -240,6 +244,7 @@ class Game2048 {
         return provider.save_result(
             user_id,
             room_id,
+            battle_id,
             result_amount,
             Math.floor(start_timestamp / 1000),
             Math.floor(finish_timestamp / 1000),
@@ -630,9 +635,9 @@ class Game2048 {
      * get game instance according to the room id
      * @param room_id
      */
-    static getGame(room_id = 'default'){
+    static getGame(room_id = 'default', battle_id){
         if (!gamesHash[room_id]) {
-            gamesHash[room_id] = new Game2048(room_id);
+            gamesHash[room_id] = new Game2048(room_id, battle_id);
         }
 
         return gamesHash[room_id]
@@ -651,7 +656,7 @@ class Game2048 {
             // wait till client sends join_game event
             socket.on(types.JOIN_GAME, (data)=>{
                 console.log(`socket # ${socket.id} joining game`)
-                let {user_id, room_id, hash, ignoreProviderFails = 0} = data;
+                let {user_id, room_id, battle_id, hash, ignoreProviderFails = 0} = data;
                 room_id = room_id || Game2048.defaultRoom;
 
                 ignoreFails = ignoreProviderFails ? ignoreProviderFails === '1' : false;
@@ -666,7 +671,7 @@ class Game2048 {
                 console.log(isGameValid ? 'Game is valid' : 'Game is invalid');
 
                 if (isGameValid || ignoreFails){
-                    const game = Game2048.getGame(room_id);
+                    const game = Game2048.getGame(room_id, battle_id);
                     game.registerUser(socket, user_id);
                 } else {
                     socket.emit(types.ERROR, messages.error(3, 'Game hash validation fails'));
