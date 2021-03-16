@@ -24,15 +24,16 @@ module.exports = {
         const {user_id, room_id,battle_id, hash} = data;
 
         const string = [game_id,user_id, room_id, battle_id,SECRET].join(':');
-        console.log(game_id,user_id, room_id, battle_id,SECRET)
-        console.log(string)
-        console.log(md5(string))
+        // console.log(game_id,user_id, room_id, battle_id,SECRET)
+        // console.log(string)
+        // console.log(md5(string))
         return  hash === md5(string);
     },
 
     get_info : (user_id, room_id, battle_id )=>{
         const game_id = GAME_ID;
-        const string = [game_id, user_id, room_id, battle_id,SECRET].join(':');
+        const timestamp =  Math.floor(+new Date() / 1000);
+        const string = [game_id, user_id, room_id, battle_id,timestamp,SECRET].join(':');
         const hash = md5(string);
 
         const params = {
@@ -40,7 +41,7 @@ module.exports = {
             user_id,
             room_id,
             battle_id,
-            timestamp : (+new Date() / 1000),
+            timestamp,
             hash
         }
 
@@ -70,14 +71,11 @@ module.exports = {
          */
 
         const game_id = GAME_ID;
-        const string = [game_id, user_id, room_id, SECRET].join(':');
+        const timestamp =  Math.floor(+new Date() / 1000);
+        const string = [game_id, user_id, room_id, timestamp, SECRET].join(':');
 
         const hash = md5(string);
 
-        console.log( 'save', user_id,
-            game_id,
-            room_id,
-            battle_id)
         const params = {
             user_id,
             game_id,
@@ -86,7 +84,7 @@ module.exports = {
             result_amount,
             start_timestamp,
             finish_timestamp,
-            timestamp : (+new Date() / 1000),
+            timestamp,
             hash,
             data
         }
