@@ -1,13 +1,11 @@
 export function resize (app, WIDTH, HEIGHT) {
     return function () {
 
-
         const innerWidth = window.innerWidth;
         const innerHeight = window.innerHeight;
 
         const RATIO = WIDTH / HEIGHT;
         const SCREEN_RATIO = innerWidth / innerHeight;
-
         let newWidth;
         // if (SCREEN_RATIO >= 1){
         //     newWidth = innerHeight * RATIO
