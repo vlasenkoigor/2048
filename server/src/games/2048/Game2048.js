@@ -653,6 +653,7 @@ class Game2048 {
         io.on(types.CONNECTION, (socket)=>{
             console.log(`socket # ${socket.id} connected to /2048 namespace`)
 
+
             // wait till client sends join_game event
             socket.on(types.JOIN_GAME, (data)=>{
                 console.log(`socket # ${socket.id} joining game`)
@@ -665,6 +666,7 @@ class Game2048 {
                 const isGameValid = provider.validate_game({
                         user_id,
                         room_id,
+                        battle_id,
                         hash
                 });
                 Game2048.notifyGameValidation(socket, isGameValid, user_id, room_id, hash)

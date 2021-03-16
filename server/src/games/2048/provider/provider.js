@@ -20,14 +20,16 @@ function getError (error){
 module.exports = {
 
     validate_game : (data)=>{
-        const {user_id, room_id, hash} = data;
-        const string = [user_id, room_id, SECRET].join(':')
+
+        const {user_id, room_id,battle_id, hash} = data;
+
+        const string = [user_id, room_id, battle_id,SECRET].join(':')
         return  hash === md5(string);
     },
 
     get_info : (user_id, room_id, battle_id )=>{
         const game_id = GAME_ID;
-        const string = [game_id, user_id, room_id, SECRET].join(':');
+        const string = [game_id, user_id, room_id, battle_id,SECRET].join(':');
         const hash = md5(string);
 
         const params = {
@@ -69,6 +71,10 @@ module.exports = {
 
         const hash = md5(string);
 
+        console.log( 'save', user_id,
+            game_id,
+            room_id,
+            battle_id)
         const params = {
             user_id,
             game_id,
@@ -82,7 +88,6 @@ module.exports = {
             data
         }
 
-        console.log('save result', params);
 
         return new Promise((resolve, reject)=>{
             axios.post(API_URL + '/result_game', params)
