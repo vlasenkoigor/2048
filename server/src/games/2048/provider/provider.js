@@ -24,7 +24,9 @@ module.exports = {
         const {user_id, room_id,battle_id, hash} = data;
 
         const string = [game_id,user_id, room_id, battle_id,SECRET].join(':');
-        console.log(game_id,user_id, room_id, battle_id,SECRET, string,md5(string), hash)
+        console.log(game_id,user_id, room_id, battle_id,SECRET)
+        console.log(string)
+        console.log(md5(string))
         return  hash === md5(string);
     },
 
